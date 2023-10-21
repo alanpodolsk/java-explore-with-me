@@ -1,9 +1,10 @@
 package ru.practicum.controller;
 
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.HitDto;
-import ru.practicum.StatsDto;
+import ru.practicum.dto.HitDto;
+import ru.practicum.dto.StatsDto;
 import ru.practicum.service.StatsService;
 
 import java.time.LocalDateTime;
@@ -17,12 +18,13 @@ public class StatsController {
     private final StatsService statsService;
 
     @PostMapping("/hit")
+    @ResponseStatus(HttpStatus.CREATED)
     public HitDto saveHit(@RequestBody HitDto hitDto){
         return statsService.saveHit(hitDto);
     }
 
     @GetMapping("/stats")
-    public List<StatsDto> getStats(@RequestParam LocalDateTime start, @RequestParam LocalDateTime end, @RequestParam String[] uris, @RequestParam Boolean unique){
+    public List<StatsDto> getStats(@RequestParam String start, @RequestParam String end, @RequestParam (defaultValue = "") String[] uris, @RequestParam (defaultValue = "false") Boolean unique){
         return statsService.getStats(start, end, uris, unique);
     }
 }
