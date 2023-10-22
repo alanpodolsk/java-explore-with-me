@@ -50,12 +50,22 @@ public class StatsServiceImpl implements StatsService {
                 statsResponse.addAll(statsRepository.getNonUniqueStatsNullUri(startDate, endDate));
             }
         } else {
+            String uriForSql = createUriForSQL(uris);
             if (unique) {
-                statsResponse.addAll(statsRepository.getUniqueStats(startDate, endDate, uris));
+                statsResponse.addAll(statsRepository.getUniqueStats(startDate, endDate, uriForSql));
             } else {
-                statsResponse.addAll(statsRepository.getNonUniqueStats(startDate, endDate, uris));
+                statsResponse.addAll(statsRepository.getNonUniqueStats(startDate, endDate, uriForSql));
             }
         }
         return statsResponse;
+    }
+
+    private String createUriForSQL(String[] uris) {
+        StringBuilder sb = new StringBuilder();
+        for (String uri : uris) {
+            sb.append("'").append(uri).append("',");
+        }
+        sb.setLength(sb.length() - 1);
+        return sb.toString();
     }
 }
