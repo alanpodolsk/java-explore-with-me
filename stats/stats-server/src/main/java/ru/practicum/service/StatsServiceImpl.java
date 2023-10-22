@@ -13,8 +13,6 @@ import ru.practicum.repository.StatsRepository;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.List;
 
 @AllArgsConstructor
@@ -52,17 +50,12 @@ public class StatsServiceImpl implements StatsService {
                 statsResponse.addAll(statsRepository.getNonUniqueStatsNullUri(startDate, endDate));
             }
         } else {
-            for (String uri : uris) {
-                if (unique) {
-                    statsResponse.addAll(statsRepository.getUniqueStats(startDate, endDate, uri + '%'));
-                } else {
-                    statsResponse.addAll(statsRepository.getNonUniqueStats(startDate, endDate, uri + '%'));
-                }
+            if (unique) {
+                statsResponse.addAll(statsRepository.getUniqueStats(startDate, endDate, uris));
+            } else {
+                statsResponse.addAll(statsRepository.getNonUniqueStats(startDate, endDate, uris));
             }
         }
-        Set<StatsDto> setStatsResponse = new HashSet<>(statsResponse);
-        statsResponse.clear();
-        statsResponse.addAll(setStatsResponse);
         return statsResponse;
     }
 }
