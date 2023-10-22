@@ -1,6 +1,7 @@
 package ru.practicum.dto;
 
 import ru.practicum.model.Hit;
+
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
 
@@ -8,7 +9,7 @@ public class HitMapper {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    public static HitDto toHitDto(Hit hit){
+    public static HitDto toHitDto(Hit hit) {
         return new HitDto(
                 hit.getApp(),
                 hit.getUri(),
@@ -17,7 +18,7 @@ public class HitMapper {
         );
     }
 
-    public static Hit toHit(HitDto hitDto){
+    public static Hit toHit(HitDto hitDto) {
         return new Hit(
                 null,
                 hitDto.getApp(),

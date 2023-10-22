@@ -45,7 +45,7 @@ public class StatsServiceImpl implements StatsService {
             throw new ValidationException("Дата окончания должна быть позже даты начала периода");
         }
         List<StatsDto> statsResponse = new ArrayList<>();
-        if(uris.length == 0){
+        if (uris.length == 0) {
             if (unique) {
                 statsResponse.addAll(statsRepository.getUniqueStatsNullUri(startDate, endDate));
             } else {

@@ -7,7 +7,6 @@ import ru.practicum.dto.HitDto;
 import ru.practicum.dto.StatsDto;
 import ru.practicum.service.StatsService;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -19,12 +18,12 @@ public class StatsController {
 
     @PostMapping("/hit")
     @ResponseStatus(HttpStatus.CREATED)
-    public HitDto saveHit(@RequestBody HitDto hitDto){
+    public HitDto saveHit(@RequestBody HitDto hitDto) {
         return statsService.saveHit(hitDto);
     }
 
     @GetMapping("/stats")
-    public List<StatsDto> getStats(@RequestParam String start, @RequestParam String end, @RequestParam (defaultValue = "") String[] uris, @RequestParam (defaultValue = "false") Boolean unique){
+    public List<StatsDto> getStats(@RequestParam String start, @RequestParam String end, @RequestParam(defaultValue = "") String[] uris, @RequestParam(defaultValue = "false") Boolean unique) {
         return statsService.getStats(start, end, uris, unique);
     }
 }

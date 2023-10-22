@@ -8,10 +8,16 @@
     </parent>
 
     <artifactId>stats</artifactId>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
     <name>stats</name>
     <url>http://maven.apache.org</url>
+
+    <modules>
+        <module>stats-server</module>
+        <module>stats-dto</module>
+        <module>stats-client</module>
+    </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
