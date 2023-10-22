@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import ru.practicum.dto.StatsDto;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 
 @Data
@@ -15,11 +16,11 @@ public class StatsRepositoryImpl implements StatsRepository {
     private final JdbcTemplate jdbcTemplate;
 
     public List<StatsDto> getUniqueStats(LocalDateTime start, LocalDateTime end, String[] uri) {
-        return jdbcTemplate.query("SELECT app, uri, count(distinct ip) as hits FROM hits WHERE timestamp between ? AND ? AND uri in (?) GROUP BY app, uri", statsDtoRowMapper(), start, end, uri);
+        return jdbcTemplate.query("SELECT app, uri, count(distinct ip) as hits FROM hits WHERE timestamp between ? AND ? AND uri in (?) GROUP BY app, uri", statsDtoRowMapper(), start, end, Arrays.toString(uri));
     }
 
     public List<StatsDto> getNonUniqueStats(LocalDateTime start, LocalDateTime end, String[] uri) {
-        return jdbcTemplate.query("SELECT app, uri, count(id) as hits FROM hits WHERE timestamp between ? AND ? AND uri in (?) GROUP BY app, uri", statsDtoRowMapper(), start, end, uri);
+        return jdbcTemplate.query("SELECT app, uri, count(id) as hits FROM hits WHERE timestamp between ? AND ? AND uri in (?) GROUP BY app, uri", statsDtoRowMapper(), start, end, Arrays.toString(uri));
     }
 
     @Override
