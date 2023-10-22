@@ -15,21 +15,21 @@ public class StatsRepositoryImpl implements StatsRepository {
     private final JdbcTemplate jdbcTemplate;
 
     public List<StatsDto> getUniqueStats(LocalDateTime start, LocalDateTime end, String uri) {
-        return jdbcTemplate.query("SELECT app, uri, count(distinct ip) as hits FROM hits WHERE timestamp between '" + start + "' AND '" + end + "' AND uri in (" + uri + ") GROUP BY app, uri", statsDtoRowMapper());
+        return jdbcTemplate.query("SELECT app, uri, count(distinct ip) as hits FROM hits WHERE timestamp between '" + start + "' AND '" + end + "' AND uri in (" + uri + ") GROUP BY app, uri ORDER BY hits DESC", statsDtoRowMapper());
     }
 
     public List<StatsDto> getNonUniqueStats(LocalDateTime start, LocalDateTime end, String uri) {
-        return jdbcTemplate.query("SELECT app, uri, count(id) as hits FROM hits WHERE timestamp between '" + start + "' AND '" + end + "' AND uri in (" + uri + ") GROUP BY app, uri", statsDtoRowMapper());
+        return jdbcTemplate.query("SELECT app, uri, count(id) as hits FROM hits WHERE timestamp between '" + start + "' AND '" + end + "' AND uri in (" + uri + ") GROUP BY app, uri ORDER BY hits DESC", statsDtoRowMapper());
     }
 
     @Override
     public List<StatsDto> getUniqueStatsNullUri(LocalDateTime start, LocalDateTime end) {
-        return jdbcTemplate.query("SELECT app, uri, count(distinct ip) as hits FROM hits WHERE timestamp between ? AND ? GROUP BY app, uri", statsDtoRowMapper(), start, end);
+        return jdbcTemplate.query("SELECT app, uri, count(distinct ip) as hits FROM hits WHERE timestamp between ? AND ? GROUP BY app, uri ORDER BY hits DESC", statsDtoRowMapper(), start, end);
     }
 
     @Override
     public List<StatsDto> getNonUniqueStatsNullUri(LocalDateTime start, LocalDateTime end) {
-        return jdbcTemplate.query("SELECT app, uri, count(id) as hits FROM hits WHERE timestamp between ? AND ? GROUP BY app, uri", statsDtoRowMapper(), start, end);
+        return jdbcTemplate.query("SELECT app, uri, count(id) as hits FROM hits WHERE timestamp between ? AND ? GROUP BY app, uri ORDER BY hits DESC", statsDtoRowMapper(), start, end);
     }
 
     private RowMapper<StatsDto> statsDtoRowMapper() {
