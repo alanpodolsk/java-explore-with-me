@@ -13,22 +13,22 @@ import java.util.List;
 @AllArgsConstructor
 public class EventsPrivController {
     @GetMapping
-    public List<EventShortDto> getEventsByUser(@PathVariable Integer userId){
+    public List<EventShortDto> getEventsByUser(@PathVariable Integer userId) {
         return null;
     }
 
     @PostMapping(("users/{userId}/events"))
-    public EventFullDto createEvent(@PathVariable Integer userId, @RequestBody NewEventDto newEventDto){
+    public EventFullDto createEvent(@PathVariable Integer userId, @RequestBody NewEventDto newEventDto) {
         return null;
     }
 
     @GetMapping(("users/{userId}/events/{eventId}"))
-    public EventFullDto getEventCreatedByUser(@PathVariable Integer userId, @PathVariable Integer eventId){
+    public EventFullDto getEventCreatedByUser(@PathVariable Integer userId, @PathVariable Integer eventId) {
         return null;
     }
 
     @PatchMapping(("users/{userId}/events/{eventId}"))
-    public EventFullDto patchEvent(@PathVariable Integer userId, @PathVariable Integer eventId, @RequestBody NewEventDto newEventDto){
+    public EventFullDto patchEvent(@PathVariable Integer userId, @PathVariable Integer eventId, @RequestBody NewEventDto newEventDto) {
         return null;
     }
 }

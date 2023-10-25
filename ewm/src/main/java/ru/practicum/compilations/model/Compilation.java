@@ -4,9 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.practicum.events.model.Event;
 
 import javax.persistence.*;
 import java.util.Objects;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -22,6 +24,12 @@ public class Compilation {
     Boolean pinned;
     @Column(nullable = false, length = 50)
     String title;
+    @ManyToMany
+    @JoinTable(
+            name = "events_compilations",
+            joinColumns = @JoinColumn(name = "comp_id"),
+            inverseJoinColumns = @JoinColumn(name = "event_id"))
+    Set<Event> events;
 
     @Override
     public boolean equals(Object o) {

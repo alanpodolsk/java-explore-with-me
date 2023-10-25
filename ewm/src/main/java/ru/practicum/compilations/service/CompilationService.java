@@ -13,5 +13,6 @@ public interface CompilationService {
     void deleteCompilation(Integer compId);
 
     List<CompilationDto> getCompilations(Boolean pinned, Integer from, Integer size);
+
     CompilationDto getCompilationById(Integer compId);
 }

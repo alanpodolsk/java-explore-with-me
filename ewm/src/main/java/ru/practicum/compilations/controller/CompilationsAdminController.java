@@ -14,20 +14,17 @@ public class CompilationsAdminController {
     private final CompilationService compilationService;
 
     @PostMapping
-    public CompilationDto createCompilation(@RequestBody NewCompilationDto newCompilationDto){
-        return compilationService.createCompilation (newCompilationDto);
+    public CompilationDto createCompilation(@RequestBody NewCompilationDto newCompilationDto) {
+        return compilationService.createCompilation(newCompilationDto);
     }
 
     @PatchMapping("/{compId}")
-    public CompilationDto createCompilation(NewCompilationDto newCompilationDto, @PathVariable Integer compId){
-        return compilationService.patchCompilation (newCompilationDto, compId);
+    public CompilationDto patchCompilation(NewCompilationDto newCompilationDto, @PathVariable Integer compId) {
+        return compilationService.patchCompilation(newCompilationDto, compId);
     }
 
     @DeleteMapping("/{compId}")
-    public void deleteCompilation(@PathVariable Integer compId){
-        compilationService.deleteCompilation (compId);
+    public void deleteCompilation(@PathVariable Integer compId) {
+        compilationService.deleteCompilation(compId);
     }
-
-
-
 }

@@ -11,23 +11,25 @@ import ru.practicum.users.model.User;
 import ru.practicum.users.repository.UsersRepository;
 
 import java.util.List;
+
 @AllArgsConstructor
 @Component
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService {
 
     private final UsersRepository usersRepository;
+
     @Override
     public List<UserDto> getUsers(Integer[] ids, Integer from, Integer size) {
-        if (ids.length > 0){
-             return UserMapper.toUserDtoList(usersRepository.getByIdIn(ids));
+        if (ids.length > 0) {
+            return UserMapper.toUserDtoList(usersRepository.getByIdIn(ids));
         } else {
-            return UserMapper.toUserDtoList(usersRepository.getAll(PageRequest.of(from/size, size)).getContent());
+            return UserMapper.toUserDtoList(usersRepository.getAll(PageRequest.of(from / size, size)).getContent());
         }
     }
 
     @Override
     public UserDto createUser(UserDto userDto) {
-        if(userDto == null){
+        if (userDto == null) {
             throw new ValidationException("Объект пользователя пустой");
         }
         User user = UserMapper.toUser(userDto);
@@ -36,10 +38,10 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public void deleteUser(Integer userId) {
-        if(usersRepository.existsById(userId)){
+        if (usersRepository.existsById(userId)) {
             usersRepository.deleteById(userId);
         } else {
-            throw new NoObjectException("User with id =" + userId +" was not found");
+            throw new NoObjectException("User with id =" + userId + " was not found");
         }
     }
 }

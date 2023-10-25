@@ -6,9 +6,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class EventsCompilationRepositoryImpl implements EventsCompilationRepository{
+public class EventsCompilationRepositoryImpl implements EventsCompilationRepository {
 
     private final JdbcTemplate jdbcTemplate;
+
     @Override
     public void addEventToCompilation(Long eventId, Integer compId) {
         String sqlSubQuery = "INSERT INTO events_compilations (comp_id, event_id) VALUES (?,?)";
