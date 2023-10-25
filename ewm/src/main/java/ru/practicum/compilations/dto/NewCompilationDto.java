@@ -1,16 +1,17 @@
 package ru.practicum.compilations.dto;
 
 import lombok.*;
-import ru.practicum.events.dto.EventShortDto;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Objects;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class NewCompilationDto {
+    @NotNull
     Boolean pinned;
+    @NotNull
     String title;
-    List<EventShortDto> events;
+    List<Long> events;
 }

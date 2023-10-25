@@ -2,6 +2,7 @@ package ru.practicum.events.model;
 
 import lombok.*;
 import ru.practicum.categories.model.Category;
+import ru.practicum.users.model.User;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
