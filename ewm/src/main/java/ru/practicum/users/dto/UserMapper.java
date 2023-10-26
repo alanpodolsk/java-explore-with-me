@@ -22,6 +22,13 @@ public class UserMapper {
         );
     }
 
+    public static UserShortDto toUserShortDto (User user){
+        return new UserShortDto(
+                user.getId(),
+                user.getName()
+        );
+    }
+
     public static List<UserDto> toUserDtoList(List<User> users) {
         return users.stream().map(UserMapper::toUserDto).collect(Collectors.toList());
     }

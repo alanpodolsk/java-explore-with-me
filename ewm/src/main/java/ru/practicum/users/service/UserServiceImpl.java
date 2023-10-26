@@ -7,6 +7,7 @@ import ru.practicum.exception.NoObjectException;
 import ru.practicum.exception.ValidationException;
 import ru.practicum.users.dto.UserDto;
 import ru.practicum.users.dto.UserMapper;
+import ru.practicum.users.dto.UserShortDto;
 import ru.practicum.users.model.User;
 import ru.practicum.users.repository.UsersRepository;
 

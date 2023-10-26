@@ -1,7 +1,10 @@
 package ru.practicum.events.dto;
 
 import lombok.*;
+import ru.practicum.categories.dto.CategoryDto;
 import ru.practicum.events.model.EventsState;
+import ru.practicum.location.model.Location;
+import ru.practicum.users.dto.UserShortDto;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
