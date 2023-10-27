@@ -37,6 +37,32 @@ public class EventMapper {
         );
     }
 
+    public static Event toEvent(UpdateEventRequest updateEventRequest) {
+        LocalDateTime eventTime;
+        if (updateEventRequest.getEventDate() == null){
+            eventTime = null;
+        } else {
+            eventTime = LocalDateTime.parse(updateEventRequest.getEventDate(), DATE_TIME_FORMATTER);
+        }
+        return new Event(
+                null,
+                updateEventRequest.getAnnotation(),
+                null,
+                null,
+                updateEventRequest.getDescription(),
+                eventTime,
+                null,
+                updateEventRequest.getLocation().getLat(),
+                updateEventRequest.getLocation().getLon(),
+                updateEventRequest.getPaid(),
+                updateEventRequest.getParticipantLimit(),
+                null,
+                updateEventRequest.getRequestModeration(),
+                null,
+                updateEventRequest.getTitle()
+        );
+    }
+
     public static EventFullDto toEventFullDto(Event event) {
         return new EventFullDto(
                 event.getId(),

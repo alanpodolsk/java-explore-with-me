@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.events.dto.EventFullDto;
 import ru.practicum.events.dto.NewEventDto;
+import ru.practicum.events.dto.UpdateEventRequest;
 import ru.practicum.events.service.EventService;
 
 import java.util.List;
@@ -22,8 +23,8 @@ public class EventsAdminController {
     }
 
     @PatchMapping(("/{eventId}"))
-    public EventFullDto patchEventForAdmin(@PathVariable Long eventId, @RequestBody NewEventDto newEventDto) {
-        return eventService.patchEventForAdmin(eventId, newEventDto);
+    public EventFullDto patchEventForAdmin(@PathVariable Long eventId, @RequestBody UpdateEventRequest updateEventRequest) {
+        return eventService.patchEventForAdmin(eventId, updateEventRequest);
     }
 
 }

@@ -3,6 +3,7 @@ package ru.practicum.events.service;
 import ru.practicum.events.dto.EventFullDto;
 import ru.practicum.events.dto.EventShortDto;
 import ru.practicum.events.dto.NewEventDto;
+import ru.practicum.events.dto.UpdateEventRequest;
 import ru.practicum.requests.dto.EventRequestStatusUpdateResult;
 import ru.practicum.requests.dto.ParticipationRequestDto;
 import ru.practicum.requests.dto.RequestStatusUpdateDto;
@@ -19,7 +20,7 @@ public interface EventService {
 
     EventFullDto createEvent(Integer userId, NewEventDto newEventDto);
 
-    EventFullDto patchEvent(Integer userId, NewEventDto newEventDto, Long eventId);
+    EventFullDto patchEvent(Integer userId, UpdateEventRequest updateEventRequest, Long eventId);
 
     EventFullDto getEventForCreator(Integer userId, Long eventId);
 
@@ -31,5 +32,5 @@ public interface EventService {
     List<EventFullDto> getEventsForAdmin(Integer[] categories, Integer[] users, String[] states, String rangeStart, String rangeEnd,
                                          Integer from, Integer size);
 
-    EventFullDto patchEventForAdmin(Long eventId, NewEventDto newEventDto);
+    EventFullDto patchEventForAdmin(Long eventId, UpdateEventRequest updateEventRequest);
 }
