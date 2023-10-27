@@ -4,39 +4,46 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.practicum.exception.dto.ApiError;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 
 @RestControllerAdvice
 public class ErrorHandler {
+
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ErrorResponse handleConflictException(final ConflictException e) {
-        return new ErrorResponse("Conflict error", e.getMessage());
+    public ApiError handleConflictException(final ConflictException e) {
+        return new ApiError(HttpStatus.CONFLICT, "Integrity constraint has been violated.", e.getMessage(), LocalDateTime.now().format(DATE_TIME_FORMATTER), null);
 
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleNoObjectException(final NoObjectException e) {
-        return new ErrorResponse("Object not found", e.getMessage());
+    public ApiError handleNoObjectException(final NoObjectException e) {
+        return new ApiError(HttpStatus.NOT_FOUND, "The required object was not found.", e.getMessage(), LocalDateTime.now().format(DATE_TIME_FORMATTER), null);
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleValidationException(final ValidationException e) {
-        return new ErrorResponse("Validation error", e.getMessage());
+    public ApiError handleValidationException(final ValidationException e) {
+        return new ApiError(HttpStatus.BAD_REQUEST, "Incorrectly made request.", e.getMessage(), LocalDateTime.now().format(DATE_TIME_FORMATTER), null);
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleIllegalArgumentException(final IllegalArgumentException e) {
-        return new ErrorResponse("IllegalArgumentException", e.getMessage());
+    public ApiError handleIllegalArgumentException(final IllegalArgumentException e) {
+        return new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, "IllegalArgumentException", e.getMessage(), LocalDateTime.now().format(DATE_TIME_FORMATTER), null);
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleRuntimeException(final RuntimeException e) {
-        return new ErrorResponse("Runtime error", e.getMessage());
+    public ApiError handleRuntimeException(final RuntimeException e) {
+        return new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, "Runtime error", e.getMessage(), LocalDateTime.now().format(DATE_TIME_FORMATTER), null);
     }
 
 

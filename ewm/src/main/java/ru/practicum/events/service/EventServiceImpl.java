@@ -3,6 +3,7 @@ package ru.practicum.events.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import ru.practicum.StatsClient;
@@ -20,7 +21,9 @@ import ru.practicum.exception.ValidationException;
 import ru.practicum.location.model.Location;
 import ru.practicum.requests.dto.EventRequestStatusUpdateResult;
 import ru.practicum.requests.dto.ParticipationRequestDto;
+import ru.practicum.requests.dto.RequestMapper;
 import ru.practicum.requests.dto.RequestStatusUpdateDto;
+import ru.practicum.requests.repository.RequestRepository;
 import ru.practicum.users.repository.UsersRepository;
 
 import java.time.LocalDateTime;
@@ -36,6 +39,7 @@ public class EventServiceImpl implements EventService {
     private final StatsClient statsClient;
     private final UsersRepository usersRepository;
     private final CategoryRepository categoryRepository;
+    private final RequestRepository requestRepository;
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private ObjectMapper mapper;
 
@@ -53,7 +57,36 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventShortDto> getEvents(String text, Integer[] categories, Boolean paid, String rangeStart, String rangeEnd, Boolean onlyAvailable, String sort, Integer from, Integer size) {
-        return null;
+        List<Event> events;
+        Boolean[] paids;
+        if (paid == null) {
+            paids = new Boolean[]{true, false};
+        } else {
+            paids = new Boolean[]{paid};
+        }
+        if (rangeStart == null) {
+            rangeStart = LocalDateTime.now().format(DATE_TIME_FORMATTER);
+        }
+        if (rangeEnd == null) {
+            rangeEnd = LocalDateTime.of(3000, 1, 1, 0, 0).format(DATE_TIME_FORMATTER);
+        }
+        if ((categories == null || categories.length == 0) && !onlyAvailable) {
+            events = eventRepository.getForPublic(text, paids, rangeStart, rangeEnd, PageRequest.of(from / size, size)).getContent();
+        } else if ((categories == null || categories.length == 0)) {
+            events = eventRepository.getForPublicWithLimit(text, paids, rangeStart, rangeEnd, PageRequest.of(from / size, size)).getContent();
+        } else if (!onlyAvailable){
+            events = eventRepository.getForPublicWithCategories(text, categories, paids, rangeStart, rangeEnd, PageRequest.of(from / size, size)).getContent();
+        } else {
+            events = eventRepository.getForPublicWithCategoriesAndLimit(text, categories, paids, rangeStart, rangeEnd, PageRequest.of(from / size, size)).getContent();
+        }
+        List<EventShortDto> eventShortDtos = EventMapper.toEventShortDtoList(events);
+        List<Long> eventsIds = eventShortDtos.stream().map(EventShortDto::getId).collect(Collectors.toList());
+        Map<Long, Long> eventViews = getEventViews(eventsIds);
+        for (EventShortDto eventShortDto : eventShortDtos) {
+            eventShortDto.setViews(eventViews.get(eventShortDto.getId()));
+        }
+        //TODO getConfirmedRequests
+        return eventShortDtos;
     }
 
     @Override
@@ -95,7 +128,7 @@ public class EventServiceImpl implements EventService {
         if (!Objects.equals(eventOpt.get().getInitiator().getId(), userId)) {
             throw new ValidationException(String.format("Event with id = %s was not create by user with id = %s", eventId, userId));
         }
-        Event event = updateEvent(eventOpt.get(),newEventDto);
+        Event event = updateEvent(eventOpt.get(), newEventDto);
         EventFullDto eventFullDto = EventMapper.toEventFullDto(eventRepository.save(event));
         eventFullDto.setViews(getEventViews(List.of(eventId)).get(eventId));
         //TODO getConfirmedRequests
@@ -122,7 +155,13 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<ParticipationRequestDto> getEventRequests(Long eventId, Integer userId) {
-        return null;
+        if (!usersRepository.existsById(userId)) {
+            throw new NoObjectException(String.format("User with id = %s was not found", userId));
+        }
+        if (eventRepository.existsById(eventId)) {
+            throw new NoObjectException(String.format("Event with id = %s was not found", eventId));
+        }
+        return RequestMapper.toParticipationRequestDtoList(requestRepository.findByEventId(eventId));
     }
 
     @Override
@@ -156,36 +195,36 @@ public class EventServiceImpl implements EventService {
         return eventViews;
     }
 
-    private Event updateEvent(Event event, NewEventDto newEventDto){
+    private Event updateEvent(Event event, NewEventDto newEventDto) {
         if (newEventDto.getAnnotation() != null && !newEventDto.getAnnotation().equals(event.getAnnotation())) {
             event.setAnnotation(newEventDto.getAnnotation());
         }
         if (newEventDto.getCategory() != null && !newEventDto.getCategory().equals(event.getCategory().getId())) {
-            if (categoryRepository.existsById(newEventDto.getCategory())){
+            if (categoryRepository.existsById(newEventDto.getCategory())) {
                 event.setCategory(categoryRepository.findById(newEventDto.getCategory()).get());
             }
         }
         if (newEventDto.getDescription() != null && !newEventDto.getDescription().equals(event.getDescription())) {
             event.setDescription(newEventDto.getDescription());
         }
-        if (newEventDto.getEventDate() != null && !newEventDto.getEventDate().equals(event.getEventDate().format(DATE_TIME_FORMATTER))){
-            event.setEventDate(LocalDateTime.parse(newEventDto.getEventDate(),DATE_TIME_FORMATTER));
+        if (newEventDto.getEventDate() != null && !newEventDto.getEventDate().equals(event.getEventDate().format(DATE_TIME_FORMATTER))) {
+            event.setEventDate(LocalDateTime.parse(newEventDto.getEventDate(), DATE_TIME_FORMATTER));
         }
-        Location existLocation = new Location(event.getLocation_lat(),event.getLocation_lon());
-        if (newEventDto.getLocation() != null && !newEventDto.getLocation().equals(existLocation)){
+        Location existLocation = new Location(event.getLocation_lat(), event.getLocation_lon());
+        if (newEventDto.getLocation() != null && !newEventDto.getLocation().equals(existLocation)) {
             event.setLocation_lat(newEventDto.getLocation().getLat());
             event.setLocation_lon(newEventDto.getLocation().getLon());
         }
-        if (newEventDto.getParticipantLimit() != null && !newEventDto.getParticipantLimit().equals(event.getParticipantLimit())){
+        if (newEventDto.getParticipantLimit() != null && !newEventDto.getParticipantLimit().equals(event.getParticipantLimit())) {
             event.setParticipantLimit(newEventDto.getParticipantLimit());
         }
-        if (newEventDto.getPaid() != null && !newEventDto.getPaid().equals(event.getPaid())){
+        if (newEventDto.getPaid() != null && !newEventDto.getPaid().equals(event.getPaid())) {
             event.setPaid(newEventDto.getPaid());
         }
-        if (newEventDto.getTitle() != null && !newEventDto.getTitle().equals(event.getTitle())){
+        if (newEventDto.getTitle() != null && !newEventDto.getTitle().equals(event.getTitle())) {
             event.setTitle(newEventDto.getTitle());
         }
-        if (newEventDto.getRequestModeration() != null && !newEventDto.getRequestModeration().equals(event.getRequestModeration())){
+        if (newEventDto.getRequestModeration() != null && !newEventDto.getRequestModeration().equals(event.getRequestModeration())) {
             event.setRequestModeration(newEventDto.getRequestModeration());
         }
         return event;
