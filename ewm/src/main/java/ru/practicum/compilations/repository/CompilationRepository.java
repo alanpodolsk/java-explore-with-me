@@ -8,5 +8,5 @@ import org.springframework.data.domain.Pageable;
 public interface CompilationRepository extends JpaRepository<Compilation, Integer> {
     Page<Compilation> getByPinned(Boolean pinned, Pageable pageable);
 
-    Page<Compilation> getAll(Pageable pageable);
+    Page<Compilation> findAll(Pageable pageable);
 }

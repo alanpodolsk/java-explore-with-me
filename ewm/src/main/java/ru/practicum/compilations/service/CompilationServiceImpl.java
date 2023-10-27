@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.RequestBody;
 import ru.practicum.compilations.dto.CompilationDto;
 import ru.practicum.compilations.dto.CompilationMapper;
 import ru.practicum.compilations.dto.NewCompilationDto;
@@ -13,9 +14,8 @@ import ru.practicum.compilations.repository.EventsCompilationRepository;
 import ru.practicum.events.repository.EventRepository;
 import ru.practicum.exception.NoObjectException;
 
-import javax.validation.Valid;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Validated
 @Component
@@ -27,18 +27,23 @@ public class CompilationServiceImpl implements CompilationService {
     private final EventRepository eventRepository;
 
     @Override
-    public CompilationDto createCompilation(@Valid NewCompilationDto newCompilationDto) {
+    public CompilationDto createCompilation(NewCompilationDto newCompilationDto) {
+        if (newCompilationDto == null) {
+            throw new NoObjectException("Empty object in POST Request");
+        }
+        if (newCompilationDto.getPinned() == null) {
+            newCompilationDto.setPinned(false);
+        }
         Compilation compilation = CompilationMapper.toCompilation(newCompilationDto);
         CompilationDto compilationDto = CompilationMapper.toCompilationDto(compilationRepository.save(compilation));
         if (newCompilationDto.getEvents() != null) {
             addEventsToCompilation(newCompilationDto.getEvents(), compilationDto.getId());
         }
-        //compilationDto.setEvents() TODO сделать метод репозитория для выгрузки по перечню id и конвертер в лист EventShortDto
-        return compilationDto;
+        return getCompilationById(compilationDto.getId());
     }
 
     @Override
-    public CompilationDto patchCompilation(NewCompilationDto newCompilationDto, Integer compId) {
+    public CompilationDto patchCompilation(@RequestBody NewCompilationDto newCompilationDto, Integer compId) {
         if (!compilationRepository.existsById(compId)) {
             throw new NoObjectException("Compilation with id = " + compId + "not found");
         }
@@ -72,17 +77,22 @@ public class CompilationServiceImpl implements CompilationService {
         if (pinned != null) {
             compilations = compilationRepository.getByPinned(pinned, PageRequest.of(from / size, size)).getContent();
         } else {
-            compilations = compilationRepository.getAll(PageRequest.of(from / size, size)).getContent();
+            compilations = compilationRepository.findAll(PageRequest.of(from / size, size)).getContent();
         }
-        List<CompilationDto> compilationDtos = CompilationMapper.toCompilationDtoList(compilations);
         //TODO
-        return null;
+        return CompilationMapper.toCompilationDtoList(compilations);
     }
 
     @Override
     public CompilationDto getCompilationById(Integer compId) {
-        return null;
+        Optional<Compilation> compilationOpt = compilationRepository.findById(compId);
+        if (compilationOpt.isPresent()) {
+            return CompilationMapper.toCompilationDto(compilationOpt.get());
+        } else {
+            throw new NoObjectException(String.format("Compilation with id = %s was not found", compId));
+        }
     }
+
 
     private void addEventsToCompilation(List<Long> eventIds, Integer compId) {
         for (Long event : eventIds) {
@@ -92,12 +102,5 @@ public class CompilationServiceImpl implements CompilationService {
                 throw new NoObjectException("Event with id " + event + " was not found");
             }
         }
-    }
-
-    private List<CompilationDto> addEventsToCompilations(List<CompilationDto> compilationDtos) {
-        List<Integer> compIds = compilationDtos.stream().map(CompilationDto::getId).collect(Collectors.toList());
-        //TODO eventRepository.getEventsByCompId
-        //TODO EventMapper.toEventShortDtoList
-        return compilationDtos;
     }
 }

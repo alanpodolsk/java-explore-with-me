@@ -14,7 +14,7 @@ public class CategoriesPubController {
 
     private final CategoryService categoryService;
 
-    @PostMapping
+    @GetMapping
     public List<CategoryDto> getCategories(@RequestParam(defaultValue = "0") Integer from, @RequestParam(defaultValue = "10") Integer size) {
         return categoryService.getCategories(from, size);
     }

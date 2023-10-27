@@ -3,6 +3,7 @@ package ru.practicum.categories.service;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
 import ru.practicum.categories.dto.CategoryDto;
 import ru.practicum.categories.dto.CategoryMapper;
 import ru.practicum.categories.dto.NewCategoryDto;
@@ -21,15 +22,16 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
 
     @Override
-    public CategoryDto createCategory(NewCategoryDto newCategoryDto) {
+    public CategoryDto createCategory(@Validated NewCategoryDto newCategoryDto) {
         if (newCategoryDto == null) {
             throw new ValidationException("Empty category object in POST operation");
         }
-        return CategoryMapper.toCategoryDto(categoryRepository.save(CategoryMapper.toCategory(newCategoryDto)));
+        Category category = CategoryMapper.toCategory(newCategoryDto);
+        return CategoryMapper.toCategoryDto(categoryRepository.save(category));
     }
 
     @Override
-    public CategoryDto patchCategory(Integer id, NewCategoryDto newCategoryDto) {
+    public CategoryDto patchCategory(Integer id, @Validated NewCategoryDto newCategoryDto) {
         if (newCategoryDto == null) {
             throw new ValidationException("Empty category object in PATCH operation");
         }
@@ -55,7 +57,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<CategoryDto> getCategories(Integer from, Integer size) {
-        return CategoryMapper.toCategoryDtoList(categoryRepository.getAll(PageRequest.of(from / size, size)).getContent());
+        return CategoryMapper.toCategoryDtoList(categoryRepository.findAll(PageRequest.of(from / size, size)).getContent());
     }
 
     @Override

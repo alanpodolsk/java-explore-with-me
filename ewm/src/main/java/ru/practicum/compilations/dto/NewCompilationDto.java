@@ -9,7 +9,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class NewCompilationDto {
-    @NotNull
     Boolean pinned;
     @NotNull
     String title;

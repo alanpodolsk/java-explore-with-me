@@ -11,5 +11,5 @@ import org.springframework.data.domain.Pageable;
 public interface UsersRepository extends JpaRepository<User, Integer> {
     List<User> getByIdIn(Integer[] ids);
 
-    Page<User> getAll(Pageable pageable);
+    Page<User> findAll(Pageable pageable);
 }

@@ -1,8 +1,11 @@
 package ru.practicum.categories.model;
 
 import lombok.*;
+import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 @Getter
@@ -15,7 +18,10 @@ public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
+    @NotNull
+    @NotBlank
     @Column(nullable = false, length = 50)
+    @Length(max = 50)
     String name;
 
     @Override

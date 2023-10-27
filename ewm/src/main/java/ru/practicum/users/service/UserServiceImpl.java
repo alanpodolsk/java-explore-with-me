@@ -3,11 +3,11 @@ package ru.practicum.users.service;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
 import ru.practicum.exception.NoObjectException;
 import ru.practicum.exception.ValidationException;
 import ru.practicum.users.dto.UserDto;
 import ru.practicum.users.dto.UserMapper;
-import ru.practicum.users.dto.UserShortDto;
 import ru.practicum.users.model.User;
 import ru.practicum.users.repository.UsersRepository;
 
@@ -24,12 +24,13 @@ public class UserServiceImpl implements UserService {
         if (ids.length > 0) {
             return UserMapper.toUserDtoList(usersRepository.getByIdIn(ids));
         } else {
-            return UserMapper.toUserDtoList(usersRepository.getAll(PageRequest.of(from / size, size)).getContent());
+            return UserMapper.toUserDtoList(usersRepository.findAll(PageRequest.of(from / size, size)).getContent());
         }
     }
 
+
     @Override
-    public UserDto createUser(UserDto userDto) {
+    public UserDto createUser(@Validated UserDto userDto) {
         if (userDto == null) {
             throw new ValidationException("Объект пользователя пустой");
         }

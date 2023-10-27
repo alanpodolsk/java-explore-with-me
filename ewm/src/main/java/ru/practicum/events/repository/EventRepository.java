@@ -58,6 +58,4 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             "AND paid in (?2)" +
             "AND eventDate BETWEEN ?3 AND ?4", nativeQuery = true)
     Page<Event> getForPublic(String text, Boolean[] paid, String start, String end, Pageable pageable);
-
-    Page<Event> getForAdmin();
 }

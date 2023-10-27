@@ -1,5 +1,6 @@
 package ru.practicum.events.dto;
 
+import lombok.AllArgsConstructor;
 import ru.practicum.categories.dto.CategoryMapper;
 import ru.practicum.events.model.Event;
 import ru.practicum.location.model.Location;
@@ -10,11 +11,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@AllArgsConstructor
 public class EventMapper {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public static Event toEvent(NewEventDto newEventDto) {
+
         return new Event(
                 null,
                 newEventDto.getAnnotation(),
@@ -43,7 +46,7 @@ public class EventMapper {
                 event.getDescription(),
                 event.getEventDate(),
                 UserMapper.toUserShortDto(event.getInitiator()),
-                new Location(event.getLocation_lat(), event.getLocation_lon()),
+                new Location(event.getLocationLat(), event.getLocationLon()),
                 event.getPaid(),
                 event.getParticipantLimit(),
                 event.getPublishedOn(),

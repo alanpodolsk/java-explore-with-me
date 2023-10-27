@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.exception.dto.ApiError;
 
+import javax.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -44,6 +45,12 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiError handleRuntimeException(final RuntimeException e) {
         return new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, "Runtime error", e.getMessage(), LocalDateTime.now().format(DATE_TIME_FORMATTER), null);
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleConstraintViolationException(final ConstraintViolationException e) {
+        return new ApiError(HttpStatus.BAD_REQUEST, "Validation error", e.getMessage(), LocalDateTime.now().format(DATE_TIME_FORMATTER), null);
     }
 
 

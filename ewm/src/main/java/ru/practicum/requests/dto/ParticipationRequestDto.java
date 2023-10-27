@@ -6,19 +6,15 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.practicum.requests.model.RequestStatus;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
-@Table(name = "requests")
 public class ParticipationRequestDto {
     Long id;
-    Integer event;
+    Long event;
     Integer requester;
     LocalDateTime created;
     RequestStatus status;

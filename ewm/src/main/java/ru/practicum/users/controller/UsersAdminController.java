@@ -29,7 +29,7 @@ public class UsersAdminController {
 
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteUser(Integer userId) {
+    public void deleteUser(@PathVariable Integer userId) {
         userService.deleteUser(userId);
     }
 }

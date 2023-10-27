@@ -37,7 +37,7 @@ public class StatsRepositoryImpl implements StatsRepository {
             StatsDto statsDto = new StatsDto();
             statsDto.setApp(rs.getString("app"));
             statsDto.setUri(rs.getString("uri"));
-            statsDto.setHits(rs.getInt("hits"));
+            statsDto.setHits(rs.getLong("hits"));
             return statsDto;
         };
     }

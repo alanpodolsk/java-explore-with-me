@@ -13,7 +13,7 @@ public class EventsCompilationRepositoryImpl implements EventsCompilationReposit
     @Override
     public void addEventToCompilation(Long eventId, Integer compId) {
         String sqlSubQuery = "INSERT INTO events_compilations (comp_id, event_id) VALUES (?,?)";
-        jdbcTemplate.update(sqlSubQuery, eventId, compId);
+        jdbcTemplate.update(sqlSubQuery, compId, eventId);
     }
 
     @Override

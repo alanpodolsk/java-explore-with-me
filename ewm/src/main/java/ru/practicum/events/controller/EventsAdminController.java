@@ -13,10 +13,11 @@ import java.util.List;
 @AllArgsConstructor
 public class EventsAdminController {
     private final EventService eventService;
+
     @GetMapping
     public List<EventFullDto> getEventsForAdmin(@RequestParam Integer[] categories, @RequestParam Integer[] users, @RequestParam String[] states,
-                                                @RequestParam (defaultValue = "") String rangeStart, @RequestParam (defaultValue = "") String rangeEnd,
-                                                @RequestParam (defaultValue = "0") Integer from, @RequestParam (defaultValue = "10") Integer size){
+                                                @RequestParam(defaultValue = "") String rangeStart, @RequestParam(defaultValue = "") String rangeEnd,
+                                                @RequestParam(defaultValue = "0") Integer from, @RequestParam(defaultValue = "10") Integer size) {
         return eventService.getEventsForAdmin(categories, users, states, rangeStart, rangeEnd, from, size);
     }
 

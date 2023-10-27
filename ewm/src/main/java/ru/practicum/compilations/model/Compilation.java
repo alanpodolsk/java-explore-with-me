@@ -4,9 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.constraints.Length;
 import ru.practicum.events.model.Event;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 import java.util.Objects;
 import java.util.Set;
 
@@ -20,8 +22,9 @@ public class Compilation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
-    @Column(nullable = false)
     Boolean pinned;
+    @NotBlank
+    @Length(max = 50)
     @Column(nullable = false, length = 50)
     String title;
     @ManyToMany

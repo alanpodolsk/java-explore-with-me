@@ -24,6 +24,7 @@ import ru.practicum.requests.dto.ParticipationRequestDto;
 import ru.practicum.requests.dto.RequestMapper;
 import ru.practicum.requests.dto.RequestStatusUpdateDto;
 import ru.practicum.requests.repository.RequestRepository;
+import ru.practicum.users.model.User;
 import ru.practicum.users.repository.UsersRepository;
 
 import java.time.LocalDateTime;
@@ -74,7 +75,7 @@ public class EventServiceImpl implements EventService {
             events = eventRepository.getForPublic(text, paids, rangeStart, rangeEnd, PageRequest.of(from / size, size)).getContent();
         } else if ((categories == null || categories.length == 0)) {
             events = eventRepository.getForPublicWithLimit(text, paids, rangeStart, rangeEnd, PageRequest.of(from / size, size)).getContent();
-        } else if (!onlyAvailable){
+        } else if (!onlyAvailable) {
             events = eventRepository.getForPublicWithCategories(text, categories, paids, rangeStart, rangeEnd, PageRequest.of(from / size, size)).getContent();
         } else {
             events = eventRepository.getForPublicWithCategoriesAndLimit(text, categories, paids, rangeStart, rangeEnd, PageRequest.of(from / size, size)).getContent();
@@ -107,10 +108,13 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventFullDto createEvent(Integer userId, NewEventDto newEventDto) {
-        if (!usersRepository.existsById(userId)) {
+        Optional<User> userOpt = usersRepository.findById(userId);
+        if (userOpt.isEmpty()) {
             throw new NoObjectException(String.format("User with id = %s was not found", userId));
         }
         Event event = EventMapper.toEvent(newEventDto);
+        event.setCategory(categoryRepository.findById(newEventDto.getCategory()).get());
+        event.setInitiator(userOpt.get());
         event.setCreatedOn(LocalDateTime.now());
         event.setState(EventsState.PENDING);
         return EventMapper.toEventFullDto(eventRepository.save(event));
@@ -128,7 +132,8 @@ public class EventServiceImpl implements EventService {
         if (!Objects.equals(eventOpt.get().getInitiator().getId(), userId)) {
             throw new ValidationException(String.format("Event with id = %s was not create by user with id = %s", eventId, userId));
         }
-        Event event = updateEvent(eventOpt.get(), newEventDto);
+        Event newEvent = EventMapper.toEvent(newEventDto);
+        Event event = updateEvent(eventOpt.get(), newEvent);
         EventFullDto eventFullDto = EventMapper.toEventFullDto(eventRepository.save(event));
         eventFullDto.setViews(getEventViews(List.of(eventId)).get(eventId));
         //TODO getConfirmedRequests
@@ -161,7 +166,7 @@ public class EventServiceImpl implements EventService {
         if (eventRepository.existsById(eventId)) {
             throw new NoObjectException(String.format("Event with id = %s was not found", eventId));
         }
-        return RequestMapper.toParticipationRequestDtoList(requestRepository.findByEventId(eventId));
+        return RequestMapper.toParticipationRequestDtoList(requestRepository.findByEvent(eventId));
     }
 
     @Override
@@ -195,37 +200,38 @@ public class EventServiceImpl implements EventService {
         return eventViews;
     }
 
-    private Event updateEvent(Event event, NewEventDto newEventDto) {
-        if (newEventDto.getAnnotation() != null && !newEventDto.getAnnotation().equals(event.getAnnotation())) {
-            event.setAnnotation(newEventDto.getAnnotation());
+    private Event updateEvent(Event event, Event newEvent) {
+        if (newEvent.getAnnotation() != null && !newEvent.getAnnotation().equals(event.getAnnotation())) {
+            event.setAnnotation(newEvent.getAnnotation());
         }
-        if (newEventDto.getCategory() != null && !newEventDto.getCategory().equals(event.getCategory().getId())) {
-            if (categoryRepository.existsById(newEventDto.getCategory())) {
-                event.setCategory(categoryRepository.findById(newEventDto.getCategory()).get());
+        if (newEvent.getCategory() != null && !newEvent.getCategory().equals(event.getCategory())) {
+            if (categoryRepository.existsById(newEvent.getCategory().getId())) {
+                event.setCategory(newEvent.getCategory());
             }
         }
-        if (newEventDto.getDescription() != null && !newEventDto.getDescription().equals(event.getDescription())) {
-            event.setDescription(newEventDto.getDescription());
+        if (newEvent.getDescription() != null && !newEvent.getDescription().equals(event.getDescription())) {
+            event.setDescription(newEvent.getDescription());
         }
-        if (newEventDto.getEventDate() != null && !newEventDto.getEventDate().equals(event.getEventDate().format(DATE_TIME_FORMATTER))) {
-            event.setEventDate(LocalDateTime.parse(newEventDto.getEventDate(), DATE_TIME_FORMATTER));
+        if (newEvent.getEventDate() != null && !newEvent.getEventDate().equals(event.getEventDate())) {
+            event.setEventDate(newEvent.getEventDate());
         }
-        Location existLocation = new Location(event.getLocation_lat(), event.getLocation_lon());
-        if (newEventDto.getLocation() != null && !newEventDto.getLocation().equals(existLocation)) {
-            event.setLocation_lat(newEventDto.getLocation().getLat());
-            event.setLocation_lon(newEventDto.getLocation().getLon());
+        Location existLocation = new Location(event.getLocationLat(), event.getLocationLon());
+        Location newLocation = new Location(newEvent.getLocationLat(), newEvent.getLocationLon());
+        if (!newLocation.equals(existLocation)) {
+            event.setLocationLat(newLocation.getLat());
+            event.setLocationLon(newLocation.getLon());
         }
-        if (newEventDto.getParticipantLimit() != null && !newEventDto.getParticipantLimit().equals(event.getParticipantLimit())) {
-            event.setParticipantLimit(newEventDto.getParticipantLimit());
+        if (newEvent.getParticipantLimit() != null && !newEvent.getParticipantLimit().equals(event.getParticipantLimit())) {
+            event.setParticipantLimit(newEvent.getParticipantLimit());
         }
-        if (newEventDto.getPaid() != null && !newEventDto.getPaid().equals(event.getPaid())) {
-            event.setPaid(newEventDto.getPaid());
+        if (newEvent.getPaid() != null && !newEvent.getPaid().equals(event.getPaid())) {
+            event.setPaid(newEvent.getPaid());
         }
-        if (newEventDto.getTitle() != null && !newEventDto.getTitle().equals(event.getTitle())) {
-            event.setTitle(newEventDto.getTitle());
+        if (newEvent.getTitle() != null && !newEvent.getTitle().equals(event.getTitle())) {
+            event.setTitle(newEvent.getTitle());
         }
-        if (newEventDto.getRequestModeration() != null && !newEventDto.getRequestModeration().equals(event.getRequestModeration())) {
-            event.setRequestModeration(newEventDto.getRequestModeration());
+        if (newEvent.getRequestModeration() != null && !newEvent.getRequestModeration().equals(event.getRequestModeration())) {
+            event.setRequestModeration(newEvent.getRequestModeration());
         }
         return event;
     }

@@ -4,9 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import java.util.Objects;
 
 @Getter
@@ -14,16 +16,19 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "hits")
+@Table(name = "users")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
-    @NotNull
-    @Column(nullable = false)
+    @NotBlank
+    @Column(nullable = false, length = 250)
+    @Length(min = 2, max = 250)
     String name;
-    @NotNull
+    @Email
+    @NotBlank
     @Column(nullable = false)
+    @Length(min = 6, max = 254)
     String email;
 
     @Override
