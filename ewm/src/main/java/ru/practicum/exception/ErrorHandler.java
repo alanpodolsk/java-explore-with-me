@@ -1,6 +1,8 @@
 package ru.practicum.exception;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -36,21 +38,27 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError MethodArgumentNotValidException(final MethodArgumentNotValidException e) {
+        return new ApiError(HttpStatus.BAD_REQUEST, "Incorrectly made request.", e.getMessage(), LocalDateTime.now().format(DATE_TIME_FORMATTER), null);
+    }
+
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiError handleIllegalArgumentException(final IllegalArgumentException e) {
         return new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, "IllegalArgumentException", e.getMessage(), LocalDateTime.now().format(DATE_TIME_FORMATTER), null);
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiError handleRuntimeException(final RuntimeException e) {
-        return new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, "Runtime error", e.getMessage(), LocalDateTime.now().format(DATE_TIME_FORMATTER), null);
-    }
-
-    @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleConstraintViolationException(final ConstraintViolationException e) {
         return new ApiError(HttpStatus.BAD_REQUEST, "Validation error", e.getMessage(), LocalDateTime.now().format(DATE_TIME_FORMATTER), null);
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleDataIntegrityViolationException(final DataIntegrityViolationException e) {
+        return new ApiError(HttpStatus.CONFLICT, "Conflict error", e.getMessage(), LocalDateTime.now().format(DATE_TIME_FORMATTER), null);
     }
 
 

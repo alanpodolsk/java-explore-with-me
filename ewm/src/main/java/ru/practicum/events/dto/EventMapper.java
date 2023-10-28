@@ -17,6 +17,16 @@ public class EventMapper {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public static Event toEvent(NewEventDto newEventDto) {
+        Double lat = null;
+        Double lon = null;
+        LocalDateTime eventTime = null;
+        if (newEventDto.getLocation() != null) {
+            lat = newEventDto.getLocation().getLat();
+            lon = newEventDto.getLocation().getLon();
+        }
+        if (newEventDto.getEventDate() != null) {
+            eventTime = LocalDateTime.parse(newEventDto.getEventDate(), DATE_TIME_FORMATTER);
+        }
 
         return new Event(
                 null,
@@ -24,10 +34,10 @@ public class EventMapper {
                 null,
                 null,
                 newEventDto.getDescription(),
-                LocalDateTime.parse(newEventDto.getEventDate(), DATE_TIME_FORMATTER),
+                eventTime,
                 null,
-                newEventDto.getLocation().getLat(),
-                newEventDto.getLocation().getLon(),
+                lat,
+                lon,
                 newEventDto.getPaid(),
                 newEventDto.getParticipantLimit(),
                 null,
@@ -38,12 +48,17 @@ public class EventMapper {
     }
 
     public static Event toEvent(UpdateEventRequest updateEventRequest) {
-        LocalDateTime eventTime;
-        if (updateEventRequest.getEventDate() == null){
-            eventTime = null;
-        } else {
+        Double lat = null;
+        Double lon = null;
+        LocalDateTime eventTime = null;
+        if (updateEventRequest.getLocation() != null) {
+            lat = updateEventRequest.getLocation().getLat();
+            lon = updateEventRequest.getLocation().getLon();
+        }
+        if (updateEventRequest.getEventDate() != null) {
             eventTime = LocalDateTime.parse(updateEventRequest.getEventDate(), DATE_TIME_FORMATTER);
         }
+
         return new Event(
                 null,
                 updateEventRequest.getAnnotation(),
@@ -52,8 +67,8 @@ public class EventMapper {
                 updateEventRequest.getDescription(),
                 eventTime,
                 null,
-                updateEventRequest.getLocation().getLat(),
-                updateEventRequest.getLocation().getLon(),
+                lat,
+                lon,
                 updateEventRequest.getPaid(),
                 updateEventRequest.getParticipantLimit(),
                 null,

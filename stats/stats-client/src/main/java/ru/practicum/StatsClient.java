@@ -36,6 +36,6 @@ public class StatsClient extends BaseClient {
         if (unique != null) {
             parameters.put("unique", unique);
         }
-        return get("/stats", parameters);
+        return get("/stats?start={start}&end={end}&uris={uris}&unique={unique}", parameters);
     }
 }

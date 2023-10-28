@@ -17,13 +17,10 @@ import ru.practicum.events.repository.EventRepository;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NoObjectException;
 import ru.practicum.exception.ValidationException;
-import ru.practicum.location.model.Location;
-import ru.practicum.requests.dto.EventRequestStatusUpdateResult;
-import ru.practicum.requests.dto.ParticipationRequestDto;
-import ru.practicum.requests.dto.RequestMapper;
-import ru.practicum.requests.dto.RequestStatusUpdateDto;
+import ru.practicum.requests.dto.*;
 import ru.practicum.requests.model.Request;
 import ru.practicum.requests.model.RequestStatus;
+import ru.practicum.requests.repository.RequestJdbcRepository;
 import ru.practicum.requests.repository.RequestRepository;
 import ru.practicum.users.model.User;
 import ru.practicum.users.repository.UsersRepository;
@@ -42,6 +39,7 @@ public class EventServiceImpl implements EventService {
     private final UsersRepository usersRepository;
     private final CategoryRepository categoryRepository;
     private final RequestRepository requestRepository;
+    private final RequestJdbcRepository requestJdbcRepository;
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private ObjectMapper mapper;
 
@@ -53,7 +51,7 @@ public class EventServiceImpl implements EventService {
         }
         EventFullDto eventFullDto = EventMapper.toEventFullDto(eventOpt.get());
         eventFullDto.setViews(getEventViews(List.of(id)).get(id));
-        //TODO getConfirmedRequests
+        //TODO getRequestsByStatus
         return eventFullDto;
     }
 
@@ -87,7 +85,7 @@ public class EventServiceImpl implements EventService {
         for (EventShortDto eventShortDto : eventShortDtos) {
             eventShortDto.setViews(eventViews.get(eventShortDto.getId()));
         }
-        //TODO getConfirmedRequests
+        //TODO getRequestsByStatus
         return eventShortDtos;
     }
 
@@ -103,7 +101,7 @@ public class EventServiceImpl implements EventService {
         for (EventShortDto eventShortDto : eventShortDtos) {
             eventShortDto.setViews(eventViews.get(eventShortDto.getId()));
         }
-        //TODO getConfirmedRequests
+        //TODO getRequestsByStatus
         return eventShortDtos;
     }
 
@@ -133,25 +131,33 @@ public class EventServiceImpl implements EventService {
         if (!Objects.equals(eventOpt.get().getInitiator().getId(), userId)) {
             throw new ValidationException(String.format("Event with id = %s was not create by user with id = %s", eventId, userId));
         }
+        if (eventOpt.get().getState().equals(EventsState.PUBLISHED)) {
+            throw new ConflictException(String.format("Event with id = %s is published, changes not allowed", eventId));
+        }
         Event newEvent = EventMapper.toEvent(updateEventRequest);
         Event event = updateEvent(eventOpt.get(), newEvent);
-        switch (updateEventRequest.getStateAction()) {
-            case SEND_TO_REVIEW:
-                if (event.getState() != EventsState.CANCELED || event.getEventDate().isBefore(LocalDateTime.now().plusHours(1))) {
-                    throw new ConflictException("Cannot send event to review");
-                } else {
-                    event.setState(EventsState.PUBLISHED);
-                }
-                break;
-            case CANCEL_REVIEW:
-                if (event.getState() != EventsState.PENDING) {
-                    throw new ConflictException("Cannot cancel the event");
-                } else
-                    event.setState(EventsState.CANCELED);
+        if (updateEventRequest.getStateAction() != null) {
+            switch (updateEventRequest.getStateAction()) {
+                case SEND_TO_REVIEW:
+                    if (event.getState() != EventsState.CANCELED || event.getEventDate().isBefore(LocalDateTime.now().plusHours(1))) {
+                        throw new ConflictException("Cannot send event to review");
+                    } else {
+                        event.setState(EventsState.PUBLISHED);
+                    }
+                    break;
+                case CANCEL_REVIEW:
+                    if (event.getState() != EventsState.PENDING) {
+                        throw new ConflictException("Cannot cancel the event");
+                    } else
+                        event.setState(EventsState.CANCELED);
+                    break;
+                default:
+                    throw new ValidationException(String.format("Invalid state action - %s", updateEventRequest.getStateAction()));
+            }
         }
         EventFullDto eventFullDto = EventMapper.toEventFullDto(eventRepository.save(event));
         eventFullDto.setViews(getEventViews(List.of(eventId)).get(eventId));
-        eventFullDto.setConfirmedRequests(getConfirmedRequests(List.of(eventId)).get(eventId));
+        eventFullDto.setConfirmedRequests(requestJdbcRepository.getRequestsByStatus(List.of(eventId), RequestStatus.CONFIRMED).get(eventId));
         return eventFullDto;
     }
 
@@ -169,7 +175,7 @@ public class EventServiceImpl implements EventService {
         }
         EventFullDto eventFullDto = EventMapper.toEventFullDto(eventOpt.get());
         eventFullDto.setViews(getEventViews(List.of(eventId)).get(eventId));
-        eventFullDto.setConfirmedRequests(getConfirmedRequests(List.of(eventId)).get(eventId));
+        eventFullDto.setConfirmedRequests(requestJdbcRepository.getRequestsByStatus(List.of(eventId), RequestStatus.CONFIRMED).get(eventId));
         return eventFullDto;
     }
 
@@ -189,36 +195,49 @@ public class EventServiceImpl implements EventService {
         if (!usersRepository.existsById(userId)) {
             throw new NoObjectException(String.format("User with id = %s was not found", userId));
         }
-        if (eventRepository.existsById(eventId)) {
+        if (!eventRepository.existsById(eventId)) {
             throw new NoObjectException(String.format("Event with id = %s was not found", eventId));
         }
         Integer participantLimit = eventRepository.findById(eventId).get().getParticipantLimit();
         List<Request> requestsForConfirmation = new ArrayList<>();
         List<Request> requestsForRejecting = new ArrayList<>();
-        List<Request> pendingRequests = requestRepository.findByEventAndStatus(eventId, RequestStatus.PENDING, Sort.by(Sort.Direction.ASC, "eventDate"));
-        if (requestRepository.findCountByEventInAndStatus(List.of(eventId), RequestStatus.CONFIRMED).get(eventId) != null) {
-            participantLimit = Math.toIntExact(participantLimit - requestRepository.findCountByEventInAndStatus(List.of(eventId), RequestStatus.CONFIRMED).get(eventId));
+        List<Request> pendingRequests = requestRepository.findAllById(requestStatusUpdateDto.getRequestIds());
+        if (requestJdbcRepository.getRequestsByStatus(List.of(eventId), RequestStatus.CONFIRMED).get(eventId) != null) {
+            participantLimit = Math.toIntExact(participantLimit - requestJdbcRepository.getRequestsByStatus(List.of(eventId), RequestStatus.CONFIRMED).get(eventId));
         }
-        ;
-        for (Request request : pendingRequests) {
-            if (participantLimit > 0) {
-                requestsForConfirmation.add(request);
-                participantLimit--;
-            } else {
-                requestsForRejecting.add(request);
+        if (requestStatusUpdateDto.getStatus() == RequestStatus.CONFIRMED){
+            for (Request request : pendingRequests) {
+                if (participantLimit > 0) {
+                    request.setStatus(RequestStatus.CONFIRMED);
+                    request = requestRepository.save(request);
+                    requestsForConfirmation.add(request);
+                    participantLimit--;
+                } else {
+                    request.setStatus(RequestStatus.REJECTED);
+                    request = requestRepository.save(request);
+                    requestsForRejecting.add(request);
+                }
             }
         }
-        List<Long> requestsForConfirmationIds = requestsForConfirmation.stream().map(Request::getId).collect(Collectors.toList());
-        List<Long> requestsForRejectingIds = requestsForRejecting.stream().map(Request::getId).collect(Collectors.toList());
-        requestRepository.updateRequestStatus(requestsForConfirmationIds, RequestStatus.CONFIRMED);
-        requestRepository.updateRequestStatus(requestsForRejectingIds, RequestStatus.REJECTED);
+        if(requestStatusUpdateDto.getStatus() == RequestStatus.REJECTED){
+            for (Request request : pendingRequests) {
+                if (request.getStatus() == RequestStatus.CONFIRMED) {
+                    throw new ConflictException("Could not reject confirmed request");
+                } else {
+                    request.setStatus(RequestStatus.REJECTED);
+                    request = requestRepository.save(request);
+                    requestsForRejecting.add(request);
+                }
+            }
+        }
+
         return new EventRequestStatusUpdateResult(RequestMapper.toParticipationRequestDtoList(requestsForConfirmation),
                 RequestMapper.toParticipationRequestDtoList(requestsForRejecting));
     }
 
     @Override
     public List<EventFullDto> getEventsForAdmin(Integer[] categories, Integer[] users, String[] states, String rangeStart, String rangeEnd, Integer from, Integer size) {
-        return null;
+        return new ArrayList<>();
     }
 
     @Override
@@ -245,18 +264,23 @@ public class EventServiceImpl implements EventService {
         }
         EventFullDto eventFullDto = EventMapper.toEventFullDto(eventRepository.save(event));
         eventFullDto.setViews(getEventViews(List.of(eventId)).get(eventId));
-        eventFullDto.setConfirmedRequests(getConfirmedRequests(List.of(eventId)).get(eventId));
+        eventFullDto.setConfirmedRequests(requestJdbcRepository.getRequestsByStatus(List.of(eventId), RequestStatus.CONFIRMED).get(eventId));
         return eventFullDto;
     }
 
     private Map<Long, Long> getEventViews(List<Long> events) {
-        String[] uris = (String[]) events.stream().map(event -> String.format("/events/%s", event)).toArray();
+        List<String> formatter = new ArrayList<>();
+        for (Long event : events) {
+            String format = String.format("/events/%s", event);
+            formatter.add(format);
+        }
+        String[] uris = formatter.toArray(new String[0]);
         ResponseEntity<Object> eventStatEntity = statsClient.getStats(LocalDateTime.of(2020, 1, 1, 0, 0).format(DATE_TIME_FORMATTER),
                 LocalDateTime.of(2030, 1, 1, 0, 0).format(DATE_TIME_FORMATTER),
                 uris, false);
-        List<StatsDto> eventStats = mapper.convertValue(eventStatEntity, new TypeReference<>() {
-        });
 
+        List<StatsDto> eventStats = mapper.convertValue(eventStatEntity.getBody(), new TypeReference<>() {
+        });
         Map<Long, Long> eventViews = new HashMap<>();
         for (StatsDto eventStat : eventStats) {
             Long eventId = Long.parseLong(eventStat.getUri().replace("/events/", ""));
@@ -265,9 +289,6 @@ public class EventServiceImpl implements EventService {
         return eventViews;
     }
 
-    private Map<Long, Long> getConfirmedRequests(List<Long> events) {
-        return requestRepository.findCountByEventInAndStatus(events, RequestStatus.CONFIRMED);
-    }
 
     private Event updateEvent(Event event, Event newEvent) {
         if (newEvent.getAnnotation() != null && !newEvent.getAnnotation().equals(event.getAnnotation())) {
@@ -283,15 +304,15 @@ public class EventServiceImpl implements EventService {
         }
         if (newEvent.getEventDate() != null && !newEvent.getEventDate().equals(event.getEventDate())) {
             if (newEvent.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
-                throw new ConflictException("EventDate must be after now + 2 hours");
+                throw new ValidationException("EventDate must be after now + 2 hours");
             }
             event.setEventDate(newEvent.getEventDate());
         }
-        Location existLocation = new Location(event.getLocationLat(), event.getLocationLon());
-        Location newLocation = new Location(newEvent.getLocationLat(), newEvent.getLocationLon());
-        if (!newLocation.equals(existLocation)) {
-            event.setLocationLat(newLocation.getLat());
-            event.setLocationLon(newLocation.getLon());
+        if (newEvent.getLocationLat() != null && !newEvent.getLocationLat().equals(event.getLocationLat())) {
+            event.setLocationLat(newEvent.getLocationLat());
+        }
+        if (newEvent.getLocationLon() != null && !newEvent.getLocationLon().equals(event.getLocationLon())) {
+            event.setLocationLon(newEvent.getLocationLon());
         }
         if (newEvent.getParticipantLimit() != null && !newEvent.getParticipantLimit().equals(event.getParticipantLimit())) {
             event.setParticipantLimit(newEvent.getParticipantLimit());
@@ -307,4 +328,6 @@ public class EventServiceImpl implements EventService {
         }
         return event;
     }
+
+
 }

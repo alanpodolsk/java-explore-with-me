@@ -15,13 +15,13 @@ public class RequestsPrivController {
     private final RequestService requestService;
 
     @GetMapping
-    public List<ParticipationRequestDto> getUserRequests(@PathVariable Integer userId) {
+    public List<ParticipationRequestDto> getUserRequests(@PathVariable Integer userId, @RequestParam Long eventId) {
         return requestService.getUserRequests(userId);
     }
 
     @PostMapping
-    public ParticipationRequestDto createRequest(@PathVariable Integer userId, @RequestBody ParticipationRequestDto participationRequestDto) {
-        return requestService.createRequest(userId, participationRequestDto);
+    public ParticipationRequestDto createRequest(@PathVariable Integer userId, @RequestParam Long eventId) {
+        return requestService.createRequest(userId, eventId);
     }
 
     @PatchMapping("/{requestId}/cancel")
