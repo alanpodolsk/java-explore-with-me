@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import ru.practicum.StatsClient;
@@ -17,7 +16,10 @@ import ru.practicum.events.repository.EventRepository;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NoObjectException;
 import ru.practicum.exception.ValidationException;
-import ru.practicum.requests.dto.*;
+import ru.practicum.requests.dto.EventRequestStatusUpdateResult;
+import ru.practicum.requests.dto.ParticipationRequestDto;
+import ru.practicum.requests.dto.RequestMapper;
+import ru.practicum.requests.dto.RequestStatusUpdateDto;
 import ru.practicum.requests.model.Request;
 import ru.practicum.requests.model.RequestStatus;
 import ru.practicum.requests.repository.RequestJdbcRepository;
@@ -112,6 +114,9 @@ public class EventServiceImpl implements EventService {
             throw new NoObjectException(String.format("User with id = %s was not found", userId));
         }
         Event event = EventMapper.toEvent(newEventDto);
+        if (event.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
+            throw new ValidationException("Incorrect event date");
+        }
         event.setCategory(categoryRepository.findById(newEventDto.getCategory()).get());
         event.setInitiator(userOpt.get());
         event.setCreatedOn(LocalDateTime.now());
@@ -202,10 +207,13 @@ public class EventServiceImpl implements EventService {
         List<Request> requestsForConfirmation = new ArrayList<>();
         List<Request> requestsForRejecting = new ArrayList<>();
         List<Request> pendingRequests = requestRepository.findAllById(requestStatusUpdateDto.getRequestIds());
+        if (participantLimit == 0) {
+            participantLimit = pendingRequests.size();
+        }
         if (requestJdbcRepository.getRequestsByStatus(List.of(eventId), RequestStatus.CONFIRMED).get(eventId) != null) {
             participantLimit = Math.toIntExact(participantLimit - requestJdbcRepository.getRequestsByStatus(List.of(eventId), RequestStatus.CONFIRMED).get(eventId));
         }
-        if (requestStatusUpdateDto.getStatus() == RequestStatus.CONFIRMED){
+        if (requestStatusUpdateDto.getStatus() == RequestStatus.CONFIRMED) {
             for (Request request : pendingRequests) {
                 if (participantLimit > 0) {
                     request.setStatus(RequestStatus.CONFIRMED);
@@ -219,7 +227,7 @@ public class EventServiceImpl implements EventService {
                 }
             }
         }
-        if(requestStatusUpdateDto.getStatus() == RequestStatus.REJECTED){
+        if (requestStatusUpdateDto.getStatus() == RequestStatus.REJECTED) {
             for (Request request : pendingRequests) {
                 if (request.getStatus() == RequestStatus.CONFIRMED) {
                     throw new ConflictException("Could not reject confirmed request");
@@ -277,7 +285,7 @@ public class EventServiceImpl implements EventService {
         String[] uris = formatter.toArray(new String[0]);
         ResponseEntity<Object> eventStatEntity = statsClient.getStats(LocalDateTime.of(2020, 1, 1, 0, 0).format(DATE_TIME_FORMATTER),
                 LocalDateTime.of(2030, 1, 1, 0, 0).format(DATE_TIME_FORMATTER),
-                uris, false);
+                uris, true);
 
         List<StatsDto> eventStats = mapper.convertValue(eventStatEntity.getBody(), new TypeReference<>() {
         });
@@ -292,15 +300,24 @@ public class EventServiceImpl implements EventService {
 
     private Event updateEvent(Event event, Event newEvent) {
         if (newEvent.getAnnotation() != null && !newEvent.getAnnotation().equals(event.getAnnotation())) {
-            event.setAnnotation(newEvent.getAnnotation());
+            if (newEvent.getAnnotation().length() >= 20 && newEvent.getAnnotation().length() <= 2000) {
+                event.setAnnotation(newEvent.getAnnotation());
+            } else {
+                throw new ValidationException("Incorrect annotation length - must be from 20 to 2000");
+            }
         }
+
         if (newEvent.getCategory() != null && !newEvent.getCategory().equals(event.getCategory())) {
             if (categoryRepository.existsById(newEvent.getCategory().getId())) {
                 event.setCategory(newEvent.getCategory());
             }
         }
         if (newEvent.getDescription() != null && !newEvent.getDescription().equals(event.getDescription())) {
-            event.setDescription(newEvent.getDescription());
+            if (newEvent.getDescription().length() >= 20 && newEvent.getDescription().length() <= 7000) {
+                event.setDescription(newEvent.getDescription());
+            } else {
+                throw new ValidationException("Incorrect Description length - must be from 20 to 2000");
+            }
         }
         if (newEvent.getEventDate() != null && !newEvent.getEventDate().equals(event.getEventDate())) {
             if (newEvent.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
@@ -321,7 +338,11 @@ public class EventServiceImpl implements EventService {
             event.setPaid(newEvent.getPaid());
         }
         if (newEvent.getTitle() != null && !newEvent.getTitle().equals(event.getTitle())) {
-            event.setTitle(newEvent.getTitle());
+            if (newEvent.getTitle().length() >= 3 && newEvent.getTitle().length() <= 120) {
+                event.setTitle(newEvent.getTitle());
+            } else {
+                throw new ValidationException("Incorrect Title length - must be from 20 to 2000");
+            }
         }
         if (newEvent.getRequestModeration() != null && !newEvent.getRequestModeration().equals(event.getRequestModeration())) {
             event.setRequestModeration(newEvent.getRequestModeration());

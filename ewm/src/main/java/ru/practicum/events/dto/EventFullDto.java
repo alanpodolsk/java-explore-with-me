@@ -19,7 +19,7 @@ public class EventFullDto {
     CategoryDto category;
     LocalDateTime createdOn;
     String description;
-    LocalDateTime eventDate;
+    String eventDate;
     UserShortDto initiator;
     Location location;
     Boolean paid;

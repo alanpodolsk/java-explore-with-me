@@ -36,7 +36,7 @@ public class Event {
     Double locationLon;
     Boolean paid;
     @Column(name = "participant_limit")
-    Integer participantLimit = 0;
+    Integer participantLimit;
     @Column(name = "published_on")
     LocalDateTime publishedOn;
     @Column(name = "request_moderation")

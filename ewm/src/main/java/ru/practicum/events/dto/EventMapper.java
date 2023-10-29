@@ -20,12 +20,24 @@ public class EventMapper {
         Double lat = null;
         Double lon = null;
         LocalDateTime eventTime = null;
+        Boolean paid = false;
+        Integer participantLimit = 0;
+        Boolean requestModeration = true;
         if (newEventDto.getLocation() != null) {
             lat = newEventDto.getLocation().getLat();
             lon = newEventDto.getLocation().getLon();
         }
         if (newEventDto.getEventDate() != null) {
             eventTime = LocalDateTime.parse(newEventDto.getEventDate(), DATE_TIME_FORMATTER);
+        }
+        if(newEventDto.getPaid() != null){
+            paid = newEventDto.getPaid();
+        }
+        if(newEventDto.getRequestModeration() != null){
+            paid = newEventDto.getRequestModeration();
+        }
+        if(newEventDto.getParticipantLimit() != null){
+            participantLimit = newEventDto.getParticipantLimit();
         }
 
         return new Event(
@@ -38,10 +50,10 @@ public class EventMapper {
                 null,
                 lat,
                 lon,
-                newEventDto.getPaid(),
-                newEventDto.getParticipantLimit(),
+                paid,
+                participantLimit,
                 null,
-                newEventDto.getRequestModeration(),
+                requestModeration,
                 null,
                 newEventDto.getTitle()
         );
@@ -85,7 +97,7 @@ public class EventMapper {
                 CategoryMapper.toCategoryDto(event.getCategory()),
                 event.getCreatedOn(),
                 event.getDescription(),
-                event.getEventDate(),
+                event.getEventDate().format(DATE_TIME_FORMATTER),
                 UserMapper.toUserShortDto(event.getInitiator()),
                 new Location(event.getLocationLat(), event.getLocationLon()),
                 event.getPaid(),

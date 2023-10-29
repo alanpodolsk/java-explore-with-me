@@ -41,6 +41,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public ParticipationRequestDto createRequest(Integer userId, Long eventId) {
+        RequestStatus status;
         if (!usersRepository.existsById(userId)) {
             throw new NoObjectException(String.format("User with id = %s was not found", userId));
         }
@@ -54,18 +55,23 @@ public class RequestServiceImpl implements RequestService {
         if (Objects.equals(eventOpt.get().getInitiator().getId(), userId)) {
             throw new ConflictException(String.format("User with id = %s could not make request for own event", eventId));
         }
-        long actualRequests = requestRepository.findByEvent(eventId).size();
-        if(actualRequests >= eventOpt.get().getParticipantLimit()){
-            throw new ConflictException(String.format("Participant limit of event with id = %s is over", eventId));
+        long participantLimit = eventOpt.get().getParticipantLimit();
+        if(participantLimit > 0){
+            status = RequestStatus.PENDING;
+            long actualRequests = requestRepository.findByEvent(eventId).size();
+            if(actualRequests >= participantLimit){
+                throw new ConflictException(String.format("Participant limit of event with id = %s is over", eventId));
+            }
+        } else {
+            status = RequestStatus.CONFIRMED;
         }
         Request request = new Request(
                 null,
                 eventId,
                 userId,
                 LocalDateTime.now(),
-                RequestStatus.PENDING
+                status
         );
-
         return RequestMapper.participationRequestDto(requestRepository.save(request));
     }
 
