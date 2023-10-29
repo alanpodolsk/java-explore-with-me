@@ -7,7 +7,6 @@ import lombok.Setter;
 import ru.practicum.categories.dto.CategoryDto;
 import ru.practicum.users.dto.UserShortDto;
 
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Getter
@@ -18,7 +17,7 @@ public class EventShortDto {
     Long id;
     String annotation;
     CategoryDto category;
-    LocalDateTime eventDate;
+    String eventDate;
     UserShortDto initiator;
     Boolean paid;
     String title;

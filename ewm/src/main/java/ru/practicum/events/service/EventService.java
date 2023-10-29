@@ -16,7 +16,7 @@ public interface EventService {
     List<EventShortDto> getEvents(String text, Integer[] categories, Boolean paid, String rangeStart, String rangeEnd,
                                   Boolean onlyAvailable, String sort, Integer from, Integer size);
 
-    List<EventShortDto> getEventsByUser(Integer userId);
+    List<EventShortDto> getEventsByUser(Integer userId, Integer from, Integer size);
 
     EventFullDto createEvent(Integer userId, NewEventDto newEventDto);
 

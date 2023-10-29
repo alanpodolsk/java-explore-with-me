@@ -30,13 +30,13 @@ public class EventMapper {
         if (newEventDto.getEventDate() != null) {
             eventTime = LocalDateTime.parse(newEventDto.getEventDate(), DATE_TIME_FORMATTER);
         }
-        if(newEventDto.getPaid() != null){
+        if (newEventDto.getPaid() != null) {
             paid = newEventDto.getPaid();
         }
-        if(newEventDto.getRequestModeration() != null){
-            paid = newEventDto.getRequestModeration();
+        if (newEventDto.getRequestModeration() != null) {
+            requestModeration = newEventDto.getRequestModeration();
         }
-        if(newEventDto.getParticipantLimit() != null){
+        if (newEventDto.getParticipantLimit() != null) {
             participantLimit = newEventDto.getParticipantLimit();
         }
 
@@ -116,7 +116,7 @@ public class EventMapper {
                 event.getId(),
                 event.getAnnotation(),
                 CategoryMapper.toCategoryDto(event.getCategory()),
-                event.getEventDate(),
+                event.getEventDate().format(DATE_TIME_FORMATTER),
                 UserMapper.toUserShortDto(event.getInitiator()),
                 event.getPaid(),
                 event.getTitle(),
@@ -127,5 +127,9 @@ public class EventMapper {
 
     public static List<EventShortDto> toEventShortDtoList(List<Event> events) {
         return events.stream().map(EventMapper::toEventShortDto).collect(Collectors.toList());
+    }
+
+    public static List<EventFullDto> toEventFullDtoList(List<Event> events) {
+        return events.stream().map(EventMapper::toEventFullDto).collect(Collectors.toList());
     }
 }

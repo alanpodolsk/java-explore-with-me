@@ -11,6 +11,7 @@ import ru.practicum.compilations.dto.NewCompilationDto;
 import ru.practicum.compilations.model.Compilation;
 import ru.practicum.compilations.repository.CompilationRepository;
 import ru.practicum.compilations.repository.EventsCompilationRepository;
+import ru.practicum.events.dto.EventMapper;
 import ru.practicum.events.repository.EventRepository;
 import ru.practicum.exception.NoObjectException;
 
@@ -57,9 +58,9 @@ public class CompilationServiceImpl implements CompilationService {
         CompilationDto compilationDto = CompilationMapper.toCompilationDto(compilationRepository.save(compilation));
         if (newCompilationDto.getEvents() != null) {
             eventsCompilationRepository.deleteRowsByCompId(compId);
+            addEventsToCompilation(newCompilationDto.getEvents(), compilationDto.getId());
         }
-        //compilationDto.setEvents() TODO сделать метод репозитория для выгрузки по перечню id и конвертер в лист EventShortDto
-        return compilationDto;
+        return getCompilationById(compilationDto.getId());
     }
 
     @Override
@@ -79,18 +80,24 @@ public class CompilationServiceImpl implements CompilationService {
         } else {
             compilations = compilationRepository.findAll(PageRequest.of(from / size, size)).getContent();
         }
-        //TODO
-        return CompilationMapper.toCompilationDtoList(compilations);
+        List<CompilationDto> compilationDtos = CompilationMapper.toCompilationDtoList(compilations);
+        for (CompilationDto compilationDto : compilationDtos) {
+            compilationDto.setEvents(EventMapper.toEventShortDtoList(eventRepository.findAllEventsInCompilation(compilationDto.getId())));
+        }
+        return compilationDtos;
     }
 
     @Override
     public CompilationDto getCompilationById(Integer compId) {
         Optional<Compilation> compilationOpt = compilationRepository.findById(compId);
+        CompilationDto compilationDto;
         if (compilationOpt.isPresent()) {
-            return CompilationMapper.toCompilationDto(compilationOpt.get());
+            compilationDto = CompilationMapper.toCompilationDto(compilationOpt.get());
         } else {
             throw new NoObjectException(String.format("Compilation with id = %s was not found", compId));
         }
+        compilationDto.setEvents(EventMapper.toEventShortDtoList(eventRepository.findAllEventsInCompilation(compId)));
+        return compilationDto;
     }
 
 

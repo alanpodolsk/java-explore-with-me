@@ -23,8 +23,8 @@ public class EventsPrivController {
     private final EventService eventService;
 
     @GetMapping
-    public List<EventShortDto> getEventsByUser(@PathVariable Integer userId) {
-        return eventService.getEventsByUser(userId);
+    public List<EventShortDto> getEventsByUser(@PathVariable Integer userId, @RequestParam(defaultValue = "0") Integer from, @RequestParam(defaultValue = "10") Integer size) {
+        return eventService.getEventsByUser(userId, from, size);
     }
 
     @PostMapping
@@ -39,7 +39,7 @@ public class EventsPrivController {
     }
 
     @PatchMapping(("/{eventId}"))
-    public EventFullDto patchEvent(@PathVariable Integer userId, @PathVariable Long eventId, @RequestBody UpdateEventRequest updateEventRequest) {
+    public EventFullDto patchEvent(@PathVariable Integer userId, @PathVariable Long eventId, @Validated @RequestBody UpdateEventRequest updateEventRequest) {
         return eventService.patchEvent(userId, updateEventRequest, eventId);
     }
 

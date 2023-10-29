@@ -21,7 +21,7 @@ public class CompilationsAdminController {
     }
 
     @PatchMapping("/{compId}")
-    public CompilationDto patchCompilation(NewCompilationDto newCompilationDto, @PathVariable Integer compId) {
+    public CompilationDto patchCompilation(@RequestBody NewCompilationDto newCompilationDto, @PathVariable Integer compId) {
         return compilationService.patchCompilation(newCompilationDto, compId);
     }
 

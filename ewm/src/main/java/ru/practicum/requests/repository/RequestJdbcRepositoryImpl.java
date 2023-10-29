@@ -13,14 +13,15 @@ import java.util.Map;
 
 @Component
 @AllArgsConstructor
-public class RequestJdbcRepositoryImpl implements RequestJdbcRepository{
+public class RequestJdbcRepositoryImpl implements RequestJdbcRepository {
 
     private final JdbcTemplate jdbcTemplate;
+
     @Override
-    public Map<Long,Long> getRequestsByStatus(List<Long> events, RequestStatus status) {
+    public Map<Long, Long> getRequestsByStatus(List<Long> events, RequestStatus status) {
         Map<Long, Long> confirmedRequests = new HashMap<>();
-        List<RequestsCountDto> requestsCountDtos = jdbcTemplate.query("SELECT event, count(id) AS count FROM requests WHERE event in ("+getEventsForSQL(events)+") and status = ? GROUP BY event",requestsCountDtoRowMapper(),status.toString());
-        for (RequestsCountDto requestsCountDto : requestsCountDtos){
+        List<RequestsCountDto> requestsCountDtos = jdbcTemplate.query("SELECT event, count(id) AS count FROM requests WHERE event in (" + getEventsForSQL(events) + ") and status = ? GROUP BY event", requestsCountDtoRowMapper(), status.toString());
+        for (RequestsCountDto requestsCountDto : requestsCountDtos) {
             confirmedRequests.put(requestsCountDto.getEvent(), requestsCountDto.getCount());
         }
         return confirmedRequests;
@@ -34,9 +35,10 @@ public class RequestJdbcRepositoryImpl implements RequestJdbcRepository{
             return requestsCountDto;
         };
     }
-    private String getEventsForSQL(List<Long> events){
+
+    private String getEventsForSQL(List<Long> events) {
         StringBuilder sb = new StringBuilder();
-        for (Long event : events){
+        for (Long event : events) {
             sb.append(event).append(",");
         }
         sb.setLength(sb.length() - 1);

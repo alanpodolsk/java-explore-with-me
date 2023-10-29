@@ -39,7 +39,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError MethodArgumentNotValidException(final MethodArgumentNotValidException e) {
+    public ApiError handleMethodArgumentNotValidException(final MethodArgumentNotValidException e) {
         return new ApiError(HttpStatus.BAD_REQUEST, "Incorrectly made request.", e.getMessage(), LocalDateTime.now().format(DATE_TIME_FORMATTER), null);
     }
 
