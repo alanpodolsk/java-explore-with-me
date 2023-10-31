@@ -3,6 +3,7 @@ package ru.practicum.requests.service;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.events.model.Event;
 import ru.practicum.events.model.EventsState;
 import ru.practicum.events.repository.EventRepository;
@@ -23,6 +24,7 @@ import java.util.Optional;
 
 @AllArgsConstructor
 @Component
+@Transactional(readOnly = true)
 public class RequestServiceImpl implements RequestService {
 
     private final RequestRepository requestRepository;
@@ -39,6 +41,7 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
+    @Transactional
     public ParticipationRequestDto createRequest(Integer userId, Long eventId) {
         RequestStatus status;
         if (!usersRepository.existsById(userId)) {
@@ -81,6 +84,7 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
+    @Transactional
     public ParticipationRequestDto cancelRequestByUser(Integer userId, Long requestId) {
         Optional<Request> requestOpt = requestRepository.findById(requestId);
         if (requestOpt.isEmpty()) {

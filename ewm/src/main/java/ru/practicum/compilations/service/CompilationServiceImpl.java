@@ -3,11 +3,13 @@ package ru.practicum.compilations.service;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import ru.practicum.compilations.dto.CompilationDto;
 import ru.practicum.compilations.dto.CompilationMapper;
 import ru.practicum.compilations.dto.NewCompilationDto;
+import ru.practicum.compilations.dto.UpdateCompilationDto;
 import ru.practicum.compilations.model.Compilation;
 import ru.practicum.compilations.repository.CompilationRepository;
 import ru.practicum.compilations.repository.EventsCompilationRepository;
@@ -21,6 +23,7 @@ import java.util.Optional;
 @Validated
 @Component
 @AllArgsConstructor
+@Transactional(readOnly = true)
 public class CompilationServiceImpl implements CompilationService {
 
     private final CompilationRepository compilationRepository;
@@ -28,6 +31,7 @@ public class CompilationServiceImpl implements CompilationService {
     private final EventRepository eventRepository;
 
     @Override
+    @Transactional
     public CompilationDto createCompilation(NewCompilationDto newCompilationDto) {
         if (newCompilationDto == null) {
             throw new NoObjectException("Empty object in POST Request");
@@ -44,26 +48,28 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
-    public CompilationDto patchCompilation(@RequestBody NewCompilationDto newCompilationDto, Integer compId) {
+    @Transactional
+    public CompilationDto patchCompilation(@RequestBody UpdateCompilationDto updateCompilationDto, Integer compId) {
         if (!compilationRepository.existsById(compId)) {
             throw new NoObjectException("Compilation with id = " + compId + "not found");
         }
         Compilation compilation = compilationRepository.findById(compId).get();
-        if (newCompilationDto.getPinned() != null) {
-            compilation.setPinned(newCompilationDto.getPinned());
+        if (updateCompilationDto.getPinned() != null) {
+            compilation.setPinned(updateCompilationDto.getPinned());
         }
-        if (newCompilationDto.getTitle() != null) {
-            compilation.setTitle(newCompilationDto.getTitle());
+        if (updateCompilationDto.getTitle() != null) {
+            compilation.setTitle(updateCompilationDto.getTitle());
         }
         CompilationDto compilationDto = CompilationMapper.toCompilationDto(compilationRepository.save(compilation));
-        if (newCompilationDto.getEvents() != null) {
+        if (updateCompilationDto.getEvents() != null) {
             eventsCompilationRepository.deleteRowsByCompId(compId);
-            addEventsToCompilation(newCompilationDto.getEvents(), compilationDto.getId());
+            addEventsToCompilation(updateCompilationDto.getEvents(), compilationDto.getId());
         }
         return getCompilationById(compilationDto.getId());
     }
 
     @Override
+    @Transactional
     public void deleteCompilation(Integer compId) {
         if (compilationRepository.existsById(compId)) {
             compilationRepository.deleteById(compId);
@@ -99,7 +105,6 @@ public class CompilationServiceImpl implements CompilationService {
         compilationDto.setEvents(EventMapper.toEventShortDtoList(eventRepository.findAllEventsInCompilation(compId)));
         return compilationDto;
     }
-
 
     private void addEventsToCompilation(List<Long> eventIds, Integer compId) {
         for (Long event : eventIds) {

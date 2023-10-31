@@ -21,7 +21,9 @@ public class CompilationDto {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
+        if (this == o) {
+            return true;
+        }
         if (o == null || getClass() != o.getClass()) return false;
         CompilationDto that = (CompilationDto) o;
         return Objects.equals(pinned, that.pinned) && Objects.equals(title, that.title);

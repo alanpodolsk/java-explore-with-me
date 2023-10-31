@@ -1,6 +1,7 @@
 package ru.practicum.events.controller;
 
 import lombok.AllArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.StatsClient;
 import ru.practicum.dto.HitDto;
@@ -9,6 +10,7 @@ import ru.practicum.events.dto.EventShortDto;
 import ru.practicum.events.service.EventService;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.Min;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -33,8 +35,9 @@ public class EventsPubController {
     public List<EventShortDto> getEvents(HttpServletRequest request, @RequestParam(defaultValue = "") String text, @RequestParam (required = false) Integer[] categories,
                                          @RequestParam(required = false) Boolean paid, @RequestParam(required = false) String rangeStart,
                                          @RequestParam(required = false) String rangeEnd, @RequestParam(defaultValue = "false") Boolean onlyAvailable,
-                                         @RequestParam(defaultValue = "") String sort, @RequestParam(defaultValue = "0") Integer from,
-                                         @RequestParam(defaultValue = "10") Integer size) {
+                                         @RequestParam(defaultValue = "") String sort,
+                                         @Validated @RequestParam(defaultValue = "0") @Min(0) Integer from,
+                                         @Validated @RequestParam(defaultValue = "10") @Min(1) Integer size) {
         postHit("/events", request.getRemoteAddr());
         return eventService.getEvents(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
     }

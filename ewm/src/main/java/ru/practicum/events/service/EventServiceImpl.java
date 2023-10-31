@@ -4,9 +4,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.StatsClient;
 import ru.practicum.categories.repository.CategoryRepository;
 import ru.practicum.dto.StatsDto;
@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
+@Transactional(readOnly = true)
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
@@ -53,9 +54,7 @@ public class EventServiceImpl implements EventService {
             throw new NoObjectException(String.format("Published event with id = %s was not found", id));
         }
         EventFullDto eventFullDto = EventMapper.toEventFullDto(eventOpt.get());
-        eventFullDto.setViews(getEventViews(List.of(id)).get(id));
-        eventFullDto.setConfirmedRequests((long) requestRepository.findByEventAndStatus(id, RequestStatus.CONFIRMED, Sort.by(Sort.Direction.ASC, "created")).size());
-        return eventFullDto;
+        return fullEventsEnrichment(List.of(eventFullDto)).get(0);
     }
 
     @Override
@@ -89,14 +88,8 @@ public class EventServiceImpl implements EventService {
             events = eventRepository.getForPublicWithCategoriesAndLimit('%' + text + '%', Arrays.asList(categories), Arrays.asList(paids), start, end, PageRequest.of(from / size, size)).getContent();
         }
         List<EventShortDto> eventShortDtos = EventMapper.toEventShortDtoList(events);
-        List<Long> eventsIds = eventShortDtos.stream().map(EventShortDto::getId).collect(Collectors.toList());
         if (!eventShortDtos.isEmpty()) {
-            Map<Long, Long> eventViews = getEventViews(eventsIds);
-            for (EventShortDto eventShortDto : eventShortDtos) {
-                eventShortDto.setViews(eventViews.get(eventShortDto.getId()));
-                eventShortDto.setConfirmedRequests((long) requestRepository.findByEventAndStatus(eventShortDto.getId(), RequestStatus.CONFIRMED, Sort.by(Sort.Direction.ASC, "created")).size());
-            }
-            return eventShortDtos;
+            return shortEventsEnrichment(eventShortDtos);
         } else {
             throw new ValidationException("Events must be published");
         }
@@ -110,17 +103,13 @@ public class EventServiceImpl implements EventService {
         List<Event> events = eventRepository.getByInitiatorId(userId, PageRequest.of(from / size, size)).getContent();
         List<EventShortDto> eventShortDtos = events.stream().map(EventMapper::toEventShortDto).collect(Collectors.toList());
         if (!eventShortDtos.isEmpty()) {
-            List<Long> eventsIds = eventShortDtos.stream().map(EventShortDto::getId).collect(Collectors.toList());
-            Map<Long, Long> eventViews = getEventViews(eventsIds);
-            for (EventShortDto eventShortDto : eventShortDtos) {
-                eventShortDto.setViews(eventViews.get(eventShortDto.getId()));
-                eventShortDto.setConfirmedRequests((long) requestRepository.findByEventAndStatus(eventShortDto.getId(), RequestStatus.CONFIRMED, Sort.by(Sort.Direction.ASC, "created")).size());
-            }
+            return shortEventsEnrichment(eventShortDtos);
         }
         return eventShortDtos;
     }
 
     @Override
+    @Transactional
     public EventFullDto createEvent(Integer userId, NewEventDto newEventDto) {
         Optional<User> userOpt = usersRepository.findById(userId);
         if (userOpt.isEmpty()) {
@@ -138,6 +127,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional
     public EventFullDto patchEvent(Integer userId, UpdateEventRequest updateEventRequest, Long eventId) {
         if (!usersRepository.existsById(userId)) {
             throw new NoObjectException(String.format("User with id = %s was not found", userId));
@@ -174,9 +164,7 @@ public class EventServiceImpl implements EventService {
             }
         }
         EventFullDto eventFullDto = EventMapper.toEventFullDto(eventRepository.save(event));
-        eventFullDto.setViews(getEventViews(List.of(eventId)).get(eventId));
-        eventFullDto.setConfirmedRequests(requestJdbcRepository.getRequestsByStatus(List.of(eventId), RequestStatus.CONFIRMED).get(eventId));
-        return eventFullDto;
+        return fullEventsEnrichment(List.of(eventFullDto)).get(0);
     }
 
     @Override
@@ -192,9 +180,7 @@ public class EventServiceImpl implements EventService {
             throw new ValidationException(String.format("Event with id = %s was not create by user with id = %s", eventId, userId));
         }
         EventFullDto eventFullDto = EventMapper.toEventFullDto(eventOpt.get());
-        eventFullDto.setViews(getEventViews(List.of(eventId)).get(eventId));
-        eventFullDto.setConfirmedRequests(requestJdbcRepository.getRequestsByStatus(List.of(eventId), RequestStatus.CONFIRMED).get(eventId));
-        return eventFullDto;
+        return fullEventsEnrichment(List.of(eventFullDto)).get(0);
     }
 
     @Override
@@ -209,6 +195,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional
     public EventRequestStatusUpdateResult updateEventRequestsStatus(Long eventId, Integer userId, RequestStatusUpdateDto requestStatusUpdateDto) {
         if (!usersRepository.existsById(userId)) {
             throw new NoObjectException(String.format("User with id = %s was not found", userId));
@@ -298,19 +285,14 @@ public class EventServiceImpl implements EventService {
         }
         List<EventFullDto> eventFullDtos = EventMapper.toEventFullDtoList(events);
         if (!eventFullDtos.isEmpty()) {
-            List<Long> eventsIds = eventFullDtos.stream().map(EventFullDto::getId).collect(Collectors.toList());
-            Map<Long, Long> eventViews = getEventViews(eventsIds);
-            for (EventFullDto eventFullDto : eventFullDtos) {
-                eventFullDto.setViews(eventViews.get(eventFullDto.getId()));
-                eventFullDto.setConfirmedRequests((long) requestRepository.findByEventAndStatus(eventFullDto.getId(), RequestStatus.CONFIRMED, Sort.by(Sort.Direction.ASC, "created")).size());
-            }
-            return eventFullDtos;
+            return fullEventsEnrichment(eventFullDtos);
         } else {
             throw new ValidationException("Events must be published");
         }
     }
 
     @Override
+    @Transactional
     public EventFullDto patchEventForAdmin(Long eventId, UpdateEventRequest updateEventRequest) {
         Optional<Event> eventOpt = eventRepository.findById(eventId);
         if (eventOpt.isEmpty()) {
@@ -335,9 +317,7 @@ public class EventServiceImpl implements EventService {
             }
         }
         EventFullDto eventFullDto = EventMapper.toEventFullDto(eventRepository.save(event));
-        eventFullDto.setViews(getEventViews(List.of(eventId)).get(eventId));
-        eventFullDto.setConfirmedRequests(requestJdbcRepository.getRequestsByStatus(List.of(eventId), RequestStatus.CONFIRMED).get(eventId));
-        return eventFullDto;
+        return fullEventsEnrichment(List.of(eventFullDto)).get(0);
     }
 
     private Map<Long, Long> getEventViews(List<Long> events) {
@@ -359,6 +339,38 @@ public class EventServiceImpl implements EventService {
             eventViews.put(eventId, eventStat.getHits());
         }
         return eventViews;
+    }
+
+    private List<EventShortDto> shortEventsEnrichment(List<EventShortDto> eventShortDtos) {
+        List<Long> eventsIds = eventShortDtos.stream().map(EventShortDto::getId).collect(Collectors.toList());
+        Map<Long, Long> eventViews = getEventViews(eventsIds);
+        Map<Long, Long> eventConfirmedRequests = requestJdbcRepository.getRequestsByStatus(eventsIds, RequestStatus.CONFIRMED);
+        for (EventShortDto eventShortDto : eventShortDtos) {
+            eventShortDto.setViews(eventViews.get(eventShortDto.getId()));
+            Long confirmedRequests = eventConfirmedRequests.get(eventShortDto.getId());
+            if (confirmedRequests != null) {
+                eventShortDto.setConfirmedRequests(eventConfirmedRequests.get(eventShortDto.getId()));
+            } else {
+                eventShortDto.setConfirmedRequests(0L);
+            }
+        }
+        return eventShortDtos;
+    }
+
+    private List<EventFullDto> fullEventsEnrichment(List<EventFullDto> eventFullDtos) {
+        List<Long> eventsIds = eventFullDtos.stream().map(EventFullDto::getId).collect(Collectors.toList());
+        Map<Long, Long> eventViews = getEventViews(eventsIds);
+        Map<Long, Long> eventConfirmedRequests = requestJdbcRepository.getRequestsByStatus(eventsIds, RequestStatus.CONFIRMED);
+        for (EventFullDto eventFullDto : eventFullDtos) {
+            eventFullDto.setViews(eventViews.get(eventFullDto.getId()));
+            Long confirmedRequests = eventConfirmedRequests.get(eventFullDto.getId());
+            if (confirmedRequests != null) {
+                eventFullDto.setConfirmedRequests(eventConfirmedRequests.get(eventFullDto.getId()));
+            } else {
+                eventFullDto.setConfirmedRequests(0L);
+            }
+        }
+        return eventFullDtos;
     }
 
 

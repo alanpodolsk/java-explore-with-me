@@ -2,6 +2,7 @@ package ru.practicum.users.controller;
 
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.users.dto.UserDto;
 import ru.practicum.users.service.UserService;
@@ -23,7 +24,7 @@ public class UsersAdminController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto createUser(@RequestBody UserDto userDto) {
+    public UserDto createUser(@Validated @RequestBody UserDto userDto) {
         return userService.createUser(userDto);
     }
 

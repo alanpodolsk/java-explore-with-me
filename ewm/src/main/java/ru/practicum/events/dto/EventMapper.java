@@ -91,23 +91,35 @@ public class EventMapper {
     }
 
     public static EventFullDto toEventFullDto(Event event) {
+        String eventDate = null;
+        String createdOn = null;
+        String publishedOn = null;
+        if (event.getEventDate() != null) {
+            eventDate = event.getEventDate().format(DATE_TIME_FORMATTER);
+        }
+        if (event.getCreatedOn() != null) {
+            createdOn = event.getCreatedOn().format(DATE_TIME_FORMATTER);
+        }
+        if (event.getPublishedOn() != null) {
+            publishedOn = event.getPublishedOn().format(DATE_TIME_FORMATTER);
+        }
         return new EventFullDto(
                 event.getId(),
                 event.getAnnotation(),
                 CategoryMapper.toCategoryDto(event.getCategory()),
-                event.getCreatedOn(),
-                event.getDescription(),
-                event.getEventDate().format(DATE_TIME_FORMATTER),
+                eventDate,
                 UserMapper.toUserShortDto(event.getInitiator()),
-                new Location(event.getLocationLat(), event.getLocationLon()),
                 event.getPaid(),
-                event.getParticipantLimit(),
-                event.getPublishedOn(),
-                event.getRequestModeration(),
-                event.getState(),
                 event.getTitle(),
                 null,
-                null
+                null,
+                createdOn,
+                event.getDescription(),
+                new Location(event.getLocationLat(), event.getLocationLon()),
+                event.getParticipantLimit(),
+                publishedOn,
+                event.getRequestModeration(),
+                event.getState()
         );
     }
 

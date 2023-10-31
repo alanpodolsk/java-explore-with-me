@@ -3,7 +3,7 @@ package ru.practicum.categories.service;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.annotation.Validated;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.categories.dto.CategoryDto;
 import ru.practicum.categories.dto.CategoryMapper;
 import ru.practicum.categories.dto.NewCategoryDto;
@@ -17,12 +17,14 @@ import java.util.Optional;
 
 @Component
 @AllArgsConstructor
+@Transactional(readOnly = true)
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
 
     @Override
-    public CategoryDto createCategory(@Validated NewCategoryDto newCategoryDto) {
+    @Transactional
+    public CategoryDto createCategory(NewCategoryDto newCategoryDto) {
         if (newCategoryDto == null) {
             throw new ValidationException("Empty category object in POST operation");
         }
@@ -31,7 +33,8 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryDto patchCategory(Integer id, @Validated NewCategoryDto newCategoryDto) {
+    @Transactional
+    public CategoryDto patchCategory(Integer id, NewCategoryDto newCategoryDto) {
         if (newCategoryDto == null) {
             throw new ValidationException("Empty category object in PATCH operation");
         }
@@ -47,6 +50,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public void deleteCategory(Integer id) {
         if (categoryRepository.existsById(id)) {
             categoryRepository.deleteById(id);

@@ -4,11 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.validator.constraints.Length;
 import ru.practicum.events.model.Event;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
 import java.util.Objects;
 import java.util.Set;
 
@@ -23,8 +21,6 @@ public class Compilation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
     Boolean pinned;
-    @NotBlank
-    @Length(max = 50)
     @Column(nullable = false, length = 50)
     String title;
     @ManyToMany
@@ -36,7 +32,9 @@ public class Compilation {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
+        if (this == o) {
+            return true;
+        }
         if (o == null || getClass() != o.getClass()) return false;
         Compilation that = (Compilation) o;
         return Objects.equals(pinned, that.pinned) && Objects.equals(title, that.title);

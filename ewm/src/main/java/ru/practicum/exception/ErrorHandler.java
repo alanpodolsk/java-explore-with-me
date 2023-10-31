@@ -61,5 +61,11 @@ public class ErrorHandler {
         return new ApiError(HttpStatus.CONFLICT, "Conflict error", e.getMessage(), LocalDateTime.now().format(DATE_TIME_FORMATTER), null);
     }
 
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ApiError handleRuntimeException(final RuntimeException e) {
+        return new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, "Runtime error", e.getMessage(), LocalDateTime.now().format(DATE_TIME_FORMATTER), null);
+    }
+
 
 }

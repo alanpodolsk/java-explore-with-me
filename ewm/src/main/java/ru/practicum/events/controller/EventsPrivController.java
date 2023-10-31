@@ -13,6 +13,7 @@ import ru.practicum.requests.dto.EventRequestStatusUpdateResult;
 import ru.practicum.requests.dto.ParticipationRequestDto;
 import ru.practicum.requests.dto.RequestStatusUpdateDto;
 
+import javax.validation.constraints.Min;
 import java.util.List;
 
 @RestController
@@ -23,7 +24,8 @@ public class EventsPrivController {
     private final EventService eventService;
 
     @GetMapping
-    public List<EventShortDto> getEventsByUser(@PathVariable Integer userId, @RequestParam(defaultValue = "0") Integer from, @RequestParam(defaultValue = "10") Integer size) {
+    public List<EventShortDto> getEventsByUser(@PathVariable Integer userId,
+                                               @Validated @RequestParam(defaultValue = "0") @Min(0) Integer from, @RequestParam(defaultValue = "10") @Min(1) Integer size) {
         return eventService.getEventsByUser(userId, from, size);
     }
 
