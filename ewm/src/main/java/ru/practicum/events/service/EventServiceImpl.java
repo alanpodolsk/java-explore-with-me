@@ -369,7 +369,6 @@ public class EventServiceImpl implements EventService {
         Map<Long, Long> eventViews = getEventViews(eventsIds);
         Map<Long, Long> eventConfirmedRequests = requestJdbcRepository.getRequestsByStatus(eventsIds, RequestStatus.CONFIRMED);
         List<Comment> comments = commentRepository.findByEventIdInAndState(eventsIds, PUBLISHED);
-        Map<Long, List<ShortCommentDto>> commentDtos = new HashMap<>();
         for (EventFullDto eventFullDto : eventFullDtos) {
             eventFullDto.setViews(eventViews.get(eventFullDto.getId()));
             Long confirmedRequests = eventConfirmedRequests.get(eventFullDto.getId());
@@ -378,11 +377,11 @@ public class EventServiceImpl implements EventService {
             } else {
                 eventFullDto.setConfirmedRequests(0L);
             }
-            List<ShortCommentDto> commentDtos1 = comments.stream()
+            List<ShortCommentDto> commentDtos = comments.stream()
                     .filter(comment -> Objects.equals(comment.getEvent().getId(), eventFullDto.getId()))
                     .map(CommentMapper::toShortCommentDto)
                     .collect(Collectors.toList());
-            eventFullDto.setComments(new HashSet<>(commentDtos1));
+            eventFullDto.setComments(new HashSet<>(commentDtos));
         }
         return eventFullDtos;
     }
