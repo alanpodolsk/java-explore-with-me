@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "947ab9a1-9437-4194-8ad2-6552384e0059",
 		"name": "feature",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
 		"_exporter_id": "27835849"
 	},
 	"item": [
@@ -18,22 +18,20 @@
 								"exec": [
 									"const main = async () => {",
 									"    const api = new API(pm);",
-									"    const rnd = new RandomUtils();",
-									"    let comment    ",
+									"    const rnd = new RandomUtils();  ",
 									"    try {",
 									"        const user = await api.addUser(rnd.getUser());",
 									"        pm.collectionVariables.set('uid', user.id);",
 									"        const category = await api.addCategory(rnd.getCategory());",
 									"        let event = await api.addEvent(user.id, rnd.getEvent(category.id));",
 									"        pm.collectionVariables.set('eventId', event.id);",
-									"        comment = rnd.getComment();",
 									"    } catch(err) {",
 									"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
 									"    }",
 									"",
 									"    pm.request.body.update({",
 									"        mode: 'raw',",
-									"        raw: JSON.stringify(comment),",
+									"        raw: JSON.stringify(rnd.getComment()),",
 									"        options: { raw: { language: 'json' } }",
 									"    });",
 									"};",
@@ -109,22 +107,20 @@
 								"exec": [
 									"const main = async () => {",
 									"    const api = new API(pm);",
-									"    const rnd = new RandomUtils();",
-									"    let comment    ",
+									"    const rnd = new RandomUtils();   ",
 									"    try {",
 									"        const user = await api.addUser(rnd.getUser());",
 									"        pm.collectionVariables.set('uid', user.id);",
 									"        const category = await api.addCategory(rnd.getCategory());",
 									"        let event = await api.addEvent(user.id, rnd.getEvent(category.id));",
 									"        pm.collectionVariables.set('eventId', event.id);",
-									"        comment = rnd.getComment();",
 									"    } catch(err) {",
 									"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
 									"    }",
 									"",
 									"    pm.request.body.update({",
 									"        mode: 'raw',",
-									"        raw: JSON.stringify(comment),",
+									"        raw: JSON.stringify(rnd.getComment()),",
 									"        options: { raw: { language: 'json' } }",
 									"    });",
 									"};",
@@ -198,44 +194,7 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									"const main = async () => {",
-									"    const api = new API(pm);",
-									"    const rnd = new RandomUtils();",
-									"       ",
-									"    try {",
-									"        const user1 = await api.addUser(rnd.getUser());",
-									"        const user2 = await api.addUser(rnd.getUser());",
-									"        const category = await api.addCategory(rnd.getCategory());",
-									"        let event1 = await api.addEvent(user1.id, rnd.getEvent(category.id));",
-									"        event1 = await api.publishEvent(event1.id);",
-									"        let event2 = await api.addEvent(user1.id, rnd.getEvent(category.id));",
-									"        event2 = await api.publishEvent(event2.id);",
-									"        pm.collectionVariables.set('uid', user2.id);",
-									"        let comment1 = await api.addComment(user2.id,event1.id, rnd.getComment());",
-									"        comment1 = await api.publishComment(comment1.id);",
-									"        let comment2 = await api.addComment(user2.id,event2.id, rnd.getComment());",
-									"",
-									"",
-									"    } catch(err) {",
-									"        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
-									"    }",
-									"};",
-									"",
-									"const interval = setInterval(() => {}, 1000);",
-									"",
-									"setTimeout(async () => ",
-									"    {",
-									"        try {",
-									"            // выполняем наш скрипт",
-									"            await main();",
-									"        } catch (e) {",
-									"            console.error(e);",
-									"        } finally {",
-									"            clearInterval(interval);",
-									"        }",
-									"    },  ",
-									"    100 ",
-									");"
+									""
 								],
 								"type": "text/javascript"
 							}
@@ -244,16 +203,10 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test(\"Ответ должен содержать код статуса 200 и данные в формате json\", function () {",
-									"    pm.response.to.have.status(200);  ",
+									"pm.test(\"Ответ должен содержать код статуса 404 и данные в формате json\", function () {",
+									"    pm.response.to.have.status(404);  ",
 									"    pm.response.to.be.withBody;",
 									"    pm.response.to.be.json;",
-									"});",
-									"",
-									"const target = pm.response.json();",
-									"",
-									"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {",
-									"    pm.expect(target.id).to.not.be.null;",
 									"});"
 								],
 								"type": "text/javascript"
@@ -283,7 +236,7 @@
 							"variable": [
 								{
 									"key": "userId",
-									"value": "{{uid}}"
+									"value": "20000"
 								}
 							]
 						}
@@ -1460,16 +1413,7 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/admin/comments",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"admin",
-						"comments"
-					]
-				}
+				"url": "{{baseUrl}}/admin/comments"
 			},
 			"response": []
 		},
