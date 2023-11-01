@@ -6,6 +6,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.comments.dto.FullCommentDto;
 import ru.practicum.comments.dto.UpdateCommentDto;
+import ru.practicum.comments.model.CommentState;
 import ru.practicum.comments.service.CommentService;
 
 import javax.validation.constraints.Min;
@@ -19,9 +20,8 @@ public class CommentsAdminController {
     private final CommentService commentService;
 
     @GetMapping
-    @ResponseStatus(HttpStatus.CREATED)
     public List<FullCommentDto> getCommentsForAdmin(@RequestParam(required = false) Long[] eventIds,
-                                                    @RequestParam(required = false) String[] state,
+                                                    @RequestParam(required = false) CommentState[] state,
                                                     @Validated @RequestParam(defaultValue = "0") @Min(0) Integer from,
                                                     @Validated @RequestParam(defaultValue = "10") @Min(1) Integer size) {
         return commentService.getCommentsForAdmin(eventIds, state, from, size);

@@ -31,7 +31,7 @@ public class CommentsPrivController {
         return commentService.patchComment(userId, commentId, updateCommentDto);
     }
 
-    @GetMapping
+    @GetMapping("/comments")
     public List<FullCommentDto> getCommentsByUser(@PathVariable Integer userId,
                                                   @Validated @RequestParam(defaultValue = "0") @Min(0) Integer from,
                                                   @Validated @RequestParam(defaultValue = "10") @Min(1) Integer size) {

@@ -21,7 +21,6 @@ import ru.practicum.exception.ValidationException;
 import ru.practicum.users.model.User;
 import ru.practicum.users.repository.UsersRepository;
 
-import javax.persistence.Column;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -88,7 +87,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public List<FullCommentDto> getCommentsForAdmin(Long[] eventIds, String[] state, Integer from, Integer size) {
+    public List<FullCommentDto> getCommentsForAdmin(Long[] eventIds, CommentState[] state, Integer from, Integer size) {
         List<Comment> comments;
         boolean eventExists = false;
         boolean stateExists = false;
@@ -98,12 +97,12 @@ public class CommentServiceImpl implements CommentService {
         if (state != null && state.length > 0) {
             stateExists = true;
         }
-        if(eventExists && stateExists){
+        if (eventExists && stateExists) {
             comments = commentRepository.findByEventIdInAndStateIn(Arrays.asList(eventIds), Arrays.asList(state), PageRequest.of(from / size, size)).getContent();
         } else if (eventExists) {
             comments = commentRepository.findByEventIdIn(Arrays.asList(eventIds), PageRequest.of(from / size, size)).getContent();
 
-        } else if (stateExists){
+        } else if (stateExists) {
             comments = commentRepository.findByStateIn(Arrays.asList(state), PageRequest.of(from / size, size)).getContent();
         } else {
             comments = commentRepository.findAll(PageRequest.of(from / size, size)).getContent();
@@ -119,8 +118,8 @@ public class CommentServiceImpl implements CommentService {
             throw new NoObjectException(String.format("Comment with id = %s was not found", commentId));
         }
         Comment comment = commentOpt.get();
-        if(comment.getState().equals(CommentState.PENDING)){
-            if(updateCommentDto.getStateAction().equals(CommentStateAction.PUBLISH)){
+        if (comment.getState().equals(CommentState.PENDING)) {
+            if (updateCommentDto.getStateAction().equals(CommentStateAction.PUBLISH)) {
                 comment.setState(CommentState.PUBLISHED);
             } else if (updateCommentDto.getStateAction().equals(CommentStateAction.REJECT)) {
                 comment.setState(CommentState.REJECTED);

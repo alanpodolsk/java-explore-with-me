@@ -368,7 +368,7 @@ public class EventServiceImpl implements EventService {
         List<Long> eventsIds = eventFullDtos.stream().map(EventFullDto::getId).collect(Collectors.toList());
         Map<Long, Long> eventViews = getEventViews(eventsIds);
         Map<Long, Long> eventConfirmedRequests = requestJdbcRepository.getRequestsByStatus(eventsIds, RequestStatus.CONFIRMED);
-        List<Comment> comments = commentRepository.findByEventIdInAndState(eventsIds, PUBLISHED.toString());
+        List<Comment> comments = commentRepository.findByEventIdInAndState(eventsIds, PUBLISHED);
         Map<Long, List<ShortCommentDto>> commentDtos = new HashMap<>();
         for (EventFullDto eventFullDto : eventFullDtos) {
             eventFullDto.setViews(eventViews.get(eventFullDto.getId()));

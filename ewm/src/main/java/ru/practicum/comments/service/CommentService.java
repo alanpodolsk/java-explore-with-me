@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import ru.practicum.comments.dto.FullCommentDto;
 import ru.practicum.comments.dto.NewCommentDto;
 import ru.practicum.comments.dto.UpdateCommentDto;
+import ru.practicum.comments.model.CommentState;
 
 import java.util.List;
 
@@ -14,7 +15,7 @@ public interface CommentService {
 
     List<FullCommentDto> getCommentsByUser(Integer userId, Integer from, Integer size);
 
-    List<FullCommentDto> getCommentsForAdmin(Long[] eventIds, String[] state, Integer from, Integer size);
+    List<FullCommentDto> getCommentsForAdmin(Long[] eventIds, CommentState[] state, Integer from, Integer size);
 
     FullCommentDto patchCommentForAdmin(Long commentId, UpdateCommentDto updateCommentDto);
 

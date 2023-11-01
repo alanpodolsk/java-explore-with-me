@@ -4,8 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.practicum.events.model.Event;
-import ru.practicum.users.model.User;
+import ru.practicum.comments.model.CommentState;
 
 @Getter
 @Setter
@@ -16,5 +15,6 @@ public class FullCommentDto {
     Long eventId;
     Integer userId;
     String text;
+    CommentState commentState;
 
 }
