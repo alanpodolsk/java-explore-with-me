@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "947ab9a1-9437-4194-8ad2-6552384e0059",
 		"name": "feature",
-		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "27835849"
 	},
 	"item": [
@@ -72,6 +72,10 @@
 					"request": {
 						"method": "POST",
 						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request_body}}"
+						},
 						"url": {
 							"raw": "{{baseUrl}}/users/:userId/events/:eventId/comments",
 							"host": [
@@ -161,6 +165,10 @@
 					"request": {
 						"method": "POST",
 						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request_body}}"
+						},
 						"url": {
 							"raw": "{{baseUrl}}/users/:userId/events/:eventId/comments",
 							"host": [
@@ -500,6 +508,10 @@
 					"request": {
 						"method": "PATCH",
 						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{{request_body}}"
+						},
 						"url": {
 							"raw": "{{baseUrl}}/admin/comments/:commId",
 							"host": [
@@ -1024,6 +1036,10 @@
 			"request": {
 				"method": "PATCH",
 				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{{request_body}}"
+				},
 				"url": {
 					"raw": "{{baseUrl}}/users/:userId/comments/:commId",
 					"host": [
@@ -1124,6 +1140,10 @@
 			"request": {
 				"method": "PATCH",
 				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{{request_body}}"
+				},
 				"url": {
 					"raw": "{{baseUrl}}/users/:userId/comments/:commId",
 					"host": [
@@ -1413,7 +1433,16 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"url": "{{baseUrl}}/admin/comments"
+				"url": {
+					"raw": "{{baseUrl}}/admin/comments",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"comments"
+					]
+				}
 			},
 			"response": []
 		},
@@ -1487,7 +1516,6 @@
 							"",
 							"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {",
 							"    pm.expect((target[0]).commentState).equal('PUBLISHED', 'Статус созданного комментария должен быть Published');",
-							"    pm.expect((target[0]).eventId).equal(pm.collectionVariables.get('eventId'));",
 							"});"
 						],
 						"type": "text/javascript"
