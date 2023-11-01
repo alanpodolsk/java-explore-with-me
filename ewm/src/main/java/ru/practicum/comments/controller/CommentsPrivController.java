@@ -9,6 +9,7 @@ import ru.practicum.comments.dto.NewCommentDto;
 import ru.practicum.comments.dto.UpdateCommentDto;
 import ru.practicum.comments.service.CommentService;
 
+import javax.validation.constraints.Min;
 import java.util.List;
 
 @RestController
@@ -31,7 +32,9 @@ public class CommentsPrivController {
     }
 
     @GetMapping
-    public List<FullCommentDto> getCommentsByUser (@PathVariable Integer userId) {
-        return commentService.getCommentsByUser(userId);
+    public List<FullCommentDto> getCommentsByUser(@PathVariable Integer userId,
+                                                  @Validated @RequestParam(defaultValue = "0") @Min(0) Integer from,
+                                                  @Validated @RequestParam(defaultValue = "10") @Min(1) Integer size) {
+        return commentService.getCommentsByUser(userId, from, size);
     }
 }

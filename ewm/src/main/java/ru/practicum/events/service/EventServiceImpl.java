@@ -9,6 +9,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.StatsClient;
 import ru.practicum.categories.repository.CategoryRepository;
+import ru.practicum.comments.dto.CommentMapper;
+import ru.practicum.comments.dto.ShortCommentDto;
+import ru.practicum.comments.model.Comment;
+import ru.practicum.comments.repository.CommentRepository;
 import ru.practicum.dto.StatsDto;
 import ru.practicum.events.dto.*;
 import ru.practicum.events.model.Event;
@@ -33,6 +37,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static ru.practicum.comments.model.CommentState.PUBLISHED;
+
 @Component
 @AllArgsConstructor
 @Transactional(readOnly = true)
@@ -44,6 +50,7 @@ public class EventServiceImpl implements EventService {
     private final CategoryRepository categoryRepository;
     private final RequestRepository requestRepository;
     private final RequestJdbcRepository requestJdbcRepository;
+    private final CommentRepository commentRepository;
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private ObjectMapper mapper;
 
@@ -361,6 +368,8 @@ public class EventServiceImpl implements EventService {
         List<Long> eventsIds = eventFullDtos.stream().map(EventFullDto::getId).collect(Collectors.toList());
         Map<Long, Long> eventViews = getEventViews(eventsIds);
         Map<Long, Long> eventConfirmedRequests = requestJdbcRepository.getRequestsByStatus(eventsIds, RequestStatus.CONFIRMED);
+        List<Comment> comments = commentRepository.findByEventIdInAndState(eventsIds, PUBLISHED.toString());
+        Map<Long, List<ShortCommentDto>> commentDtos = new HashMap<>();
         for (EventFullDto eventFullDto : eventFullDtos) {
             eventFullDto.setViews(eventViews.get(eventFullDto.getId()));
             Long confirmedRequests = eventConfirmedRequests.get(eventFullDto.getId());
@@ -369,6 +378,11 @@ public class EventServiceImpl implements EventService {
             } else {
                 eventFullDto.setConfirmedRequests(0L);
             }
+            List<ShortCommentDto> commentDtos1 = comments.stream()
+                    .filter(comment -> Objects.equals(comment.getEvent().getId(), eventFullDto.getId()))
+                    .map(CommentMapper::toShortCommentDto)
+                    .collect(Collectors.toList());
+            eventFullDto.setComments(new HashSet<>(commentDtos1));
         }
         return eventFullDtos;
     }

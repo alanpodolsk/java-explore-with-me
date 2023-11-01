@@ -119,7 +119,8 @@ public class EventMapper {
                 event.getParticipantLimit(),
                 publishedOn,
                 event.getRequestModeration(),
-                event.getState()
+                event.getState(),
+                null
         );
     }
 
